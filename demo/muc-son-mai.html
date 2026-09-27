@@ -1,0 +1,406 @@
+<title>Mực Sơn Mài</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,600&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --lacquer: #120d0b;
+    --lacquer-2: #1b1411;
+    --line: #2e241e;
+    --gold: #d4ab52;
+    --cinnabar: #c0392b;
+    --eggshell: #ede3cf;
+    --text: #e6dccb;
+    --muted: #9a8b7a;
+    --display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+    --ui: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  html, body { background: var(--lacquer); }
+  body {
+    color: var(--text);
+    font-family: var(--ui);
+    font-size: 15px;
+    line-height: 1.55;
+    padding-inline: 16px;
+    padding-block: 28px 40px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 20px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+  h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    line-height: 1;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  h1 em { font-style: italic; color: var(--gold); }
+  .lede { margin: 0; max-width: 46ch; color: var(--muted); }
+
+  .stage {
+    position: relative;
+    border: 1px solid var(--line);
+    background: var(--lacquer);
+    box-shadow: inset 0 0 0 6px var(--lacquer-2), 0 30px 60px -30px #000;
+    padding: 6px;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    max-width: 100%;
+    touch-action: none;
+    cursor: crosshair;
+    background: var(--lacquer);
+  }
+  .hint {
+    position: absolute; left: 20px; bottom: 16px;
+    font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--muted); pointer-events: none;
+    transition: opacity .6s;
+  }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+  .group { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+
+  button, input {
+    font: inherit; color: var(--text);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 8px 14px;
+  }
+  button { cursor: pointer; transition: border-color .2s, background .2s; }
+  button:hover { border-color: var(--muted); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; }
+  .chip i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .chip[aria-pressed="true"] { border-color: var(--gold); background: var(--lacquer-2); }
+  .write { display: flex; gap: 8px; flex: 1 1 280px; min-width: 0; }
+  .write input { flex: 1; min-width: 0; font-family: var(--display); font-size: 18px; font-style: italic; padding-block: 5px; }
+  .primary { border-color: var(--gold); color: var(--gold); }
+
+  footer {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+    border-top: 1px solid var(--line); padding-top: 14px;
+    font-size: 13px; color: var(--muted);
+  }
+  footer p { margin: 0; max-width: 62ch; }
+  .stats { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  @media (max-width: 600px) { canvas { aspect-ratio: 3 / 4; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Mực <em>Sơn Mài</em></h1>
+    <p class="lede">Kéo ngón tay hoặc chuột trên mặt sơn để khuấy mực. Gõ một chữ và xem nó tan ra như vàng lá trôi trên nước.</p>
+  </header>
+
+  <div class="stage">
+    <canvas id="c" aria-label="Mặt chất lỏng tương tác. Kéo để khuấy mực."></canvas>
+    <span class="hint" id="hint">Kéo để khuấy</span>
+  </div>
+
+  <div class="controls">
+    <div class="group" role="group" aria-label="Chọn màu mực">
+      <span class="label">Màu</span>
+      <button class="chip" id="p0" aria-pressed="true"><i style="background:var(--gold)"></i>Vàng lá</button>
+      <button class="chip" id="p1" aria-pressed="false"><i style="background:var(--cinnabar)"></i>Son đỏ</button>
+      <button class="chip" id="p2" aria-pressed="false"><i style="background:var(--eggshell)"></i>Vỏ trứng</button>
+    </div>
+    <form class="write" id="f">
+      <input id="t" maxlength="24" value="Xin chào" aria-label="Chữ muốn viết">
+      <button class="primary" type="submit">Viết</button>
+    </form>
+    <div class="group">
+      <button id="wind">Thổi gió</button>
+      <button id="clear">Lau sạch</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>Giải phương trình Navier–Stokes cho chất lỏng không nén (phương pháp Stable Fluids của Jos Stam, thêm vorticity confinement để giữ xoáy). Viết tay bằng JavaScript thuần, không thư viện.</p>
+    <span class="stats" id="stats">—</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const statsEl = document.getElementById('stats');
+  const hint = document.getElementById('hint');
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const BG = [18, 13, 11];
+  const PIGMENTS = [[212, 171, 82], [192, 57, 43], [237, 227, 207]];
+  let pigment = 0;
+
+  let W, H, S, u, v, u0, v0, p, div, curl, dyes, dyes0, img;
+  const IX = (i, j) => i + (W + 2) * j;
+
+  function alloc() {
+    const r = canvas.getBoundingClientRect();
+    const aspect = r.height / r.width || 0.625;
+    W = r.width < 600 ? 140 : 220;
+    H = Math.max(60, Math.min(320, Math.round(W * aspect)));
+    S = (W + 2) * (H + 2);
+    const F = () => new Float32Array(S);
+    u = F(); v = F(); u0 = F(); v0 = F(); p = F(); div = F(); curl = F();
+    dyes = [F(), F(), F()]; dyes0 = [F(), F(), F()];
+    canvas.width = W; canvas.height = H;
+    img = ctx.createImageData(W, H);
+    statsEl.textContent = `${W}×${H} = ${(W * H).toLocaleString('vi-VN')} ô lưới`;
+  }
+
+  function setBnd(b, x) {
+    for (let i = 1; i <= W; i++) {
+      x[IX(i, 0)] = b === 2 ? -x[IX(i, 1)] : x[IX(i, 1)];
+      x[IX(i, H + 1)] = b === 2 ? -x[IX(i, H)] : x[IX(i, H)];
+    }
+    for (let j = 1; j <= H; j++) {
+      x[IX(0, j)] = b === 1 ? -x[IX(1, j)] : x[IX(1, j)];
+      x[IX(W + 1, j)] = b === 1 ? -x[IX(W, j)] : x[IX(W, j)];
+    }
+    x[IX(0, 0)] = 0.5 * (x[IX(1, 0)] + x[IX(0, 1)]);
+    x[IX(0, H + 1)] = 0.5 * (x[IX(1, H + 1)] + x[IX(0, H)]);
+    x[IX(W + 1, 0)] = 0.5 * (x[IX(W, 0)] + x[IX(W + 1, 1)]);
+    x[IX(W + 1, H + 1)] = 0.5 * (x[IX(W, H + 1)] + x[IX(W + 1, H)]);
+  }
+
+  function advect(b, d, d0, dt) {
+    const row = W + 2;
+    for (let j = 1; j <= H; j++) {
+      for (let i = 1; i <= W; i++) {
+        const k = i + row * j;
+        let x = i - dt * u[k], y = j - dt * v[k];
+        if (x < 0.5) x = 0.5; else if (x > W + 0.5) x = W + 0.5;
+        if (y < 0.5) y = 0.5; else if (y > H + 0.5) y = H + 0.5;
+        const i0 = x | 0, j0 = y | 0, s1 = x - i0, t1 = y - j0, s0 = 1 - s1, t0 = 1 - t1;
+        const a = i0 + row * j0;
+        d[k] = s0 * (t0 * d0[a] + t1 * d0[a + row]) + s1 * (t0 * d0[a + 1] + t1 * d0[a + 1 + row]);
+      }
+    }
+    setBnd(b, d);
+  }
+
+  function project() {
+    const row = W + 2;
+    for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) {
+      const k = i + row * j;
+      div[k] = -0.5 * (u[k + 1] - u[k - 1] + v[k + row] - v[k - row]);
+      p[k] = 0;
+    }
+    setBnd(0, div); setBnd(0, p);
+    for (let it = 0; it < 24; it++) {
+      for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) {
+        const k = i + row * j;
+        p[k] = (div[k] + p[k - 1] + p[k + 1] + p[k - row] + p[k + row]) * 0.25;
+      }
+      setBnd(0, p);
+    }
+    for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) {
+      const k = i + row * j;
+      u[k] -= 0.5 * (p[k + 1] - p[k - 1]);
+      v[k] -= 0.5 * (p[k + row] - p[k - row]);
+    }
+    setBnd(1, u); setBnd(2, v);
+  }
+
+  function vorticity(dt, eps) {
+    const row = W + 2;
+    for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) {
+      const k = i + row * j;
+      curl[k] = 0.5 * ((v[k + 1] - v[k - 1]) - (u[k + row] - u[k - row]));
+    }
+    for (let j = 2; j < H; j++) for (let i = 2; i < W; i++) {
+      const k = i + row * j;
+      const nx = 0.5 * (Math.abs(curl[k + 1]) - Math.abs(curl[k - 1]));
+      const ny = 0.5 * (Math.abs(curl[k + row]) - Math.abs(curl[k - row]));
+      const len = Math.hypot(nx, ny) + 1e-5;
+      const w = curl[k];
+      u[k] += dt * eps * (ny / len) * w;
+      v[k] -= dt * eps * (nx / len) * w;
+    }
+  }
+
+  function step(dt) {
+    vorticity(dt, 9);
+    u0.set(u); v0.set(v);
+    advect(1, u, u0, dt);
+    advect(2, v, v0, dt);
+    for (let k = 0; k < S; k++) { u[k] *= 0.996; v[k] *= 0.996; }
+    project();
+    for (let c = 0; c < 3; c++) {
+      dyes0[c].set(dyes[c]);
+      advect(0, dyes[c], dyes0[c], dt);
+      const d = dyes[c];
+      for (let k = 0; k < S; k++) d[k] *= 0.9985;
+    }
+  }
+
+  function render() {
+    const data = img.data, row = W + 2;
+    const d0 = dyes[0], d1 = dyes[1], d2 = dyes[2];
+    let o = 0;
+    for (let j = 1; j <= H; j++) for (let i = 1; i <= W; i++) {
+      const k = i + row * j;
+      let r = BG[0], g = BG[1], b = BG[2];
+      const ds = [d0[k], d1[k], d2[k]];
+      for (let c = 0; c < 3; c++) {
+        const d = ds[c];
+        if (d > 0.002) {
+          const a = 1 - Math.exp(-d * 1.6), col = PIGMENTS[c];
+          r += (col[0] - r) * a; g += (col[1] - g) * a; b += (col[2] - b) * a;
+        }
+      }
+      // faint sheen from local speed, like light catching polished lacquer
+      const sp = Math.min(1, Math.hypot(u[k], v[k]) * 0.004);
+      data[o] = r + sp * 30; data[o + 1] = g + sp * 24; data[o + 2] = b + sp * 16; data[o + 3] = 255;
+      o += 4;
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+
+  function splat(x, y, fx, fy, amount, c, radius) {
+    const r = radius, row = W + 2;
+    const x0 = Math.max(1, Math.floor(x - r * 2)), x1 = Math.min(W, Math.ceil(x + r * 2));
+    const y0 = Math.max(1, Math.floor(y - r * 2)), y1 = Math.min(H, Math.ceil(y + r * 2));
+    for (let j = y0; j <= y1; j++) for (let i = x0; i <= x1; i++) {
+      const dx = i - x, dy = j - y;
+      const f = Math.exp(-(dx * dx + dy * dy) / (r * r));
+      const k = i + row * j;
+      u[k] += fx * f; v[k] += fy * f;
+      if (c >= 0) dyes[c][k] += amount * f;
+    }
+  }
+
+  function writeText(text, c) {
+    text = text.trim();
+    if (!text) return;
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const o = off.getContext('2d');
+    let size = Math.round(H * 0.42);
+    const font = s => `italic 600 ${s}px "Cormorant Garamond", Georgia, serif`;
+    o.font = font(size);
+    const maxW = W * 0.86;
+    const mw = o.measureText(text).width;
+    if (mw > maxW) { size = Math.floor(size * maxW / mw); o.font = font(size); }
+    o.textAlign = 'center'; o.textBaseline = 'middle';
+    o.fillStyle = '#fff';
+    o.fillText(text, W / 2, H / 2);
+    const px = o.getImageData(0, 0, W, H).data, row = W + 2;
+    const phase = Math.random() * 6.28;
+    for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
+      const a = px[(i + j * W) * 4 + 3] / 255;
+      if (a > 0.05) {
+        const k = (i + 1) + row * (j + 1);
+        dyes[c][k] += a * 2.2;
+        // warm ink rises and ripples slowly
+        v[k] -= a * 2;
+        u[k] += a * 1.5 * Math.sin(j * 0.25 + phase);
+      }
+    }
+  }
+
+  function gust() {
+    const y = H * (0.3 + Math.random() * 0.4);
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const x = dir > 0 ? 6 : W - 6;
+    for (let s = 0; s < 6; s++) {
+      splat(x, y + (s - 2.5) * H * 0.05, dir * 900, (Math.random() - 0.5) * 300, 0, -1, H * 0.06);
+    }
+  }
+
+  // pointer stirring
+  let last = null, lastInput = performance.now();
+  function toGrid(e) {
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) / r.width * W + 0.5, y: (e.clientY - r.top) / r.height * H + 0.5, t: performance.now() };
+  }
+  canvas.addEventListener('pointerdown', e => {
+    canvas.setPointerCapture(e.pointerId);
+    last = toGrid(e);
+    splat(last.x, last.y, 0, 0, 1.4, pigment, W * 0.018);
+    hint.style.opacity = 0;
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!last) return;
+    const g = toGrid(e);
+    const dx = g.x - last.x, dy = g.y - last.y;
+    const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / 1.5));
+    for (let s = 1; s <= steps; s++) {
+      const t = s / steps;
+      splat(last.x + dx * t, last.y + dy * t, dx * 14, dy * 14, 0.9 / steps + 0.25, pigment, W * 0.016);
+    }
+    last = g; lastInput = g.t;
+  });
+  const end = () => { last = null; };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
+
+  // controls
+  const chips = [0, 1, 2].map(i => document.getElementById('p' + i));
+  chips.forEach((b, i) => b.addEventListener('click', () => {
+    pigment = i;
+    chips.forEach((x, j) => x.setAttribute('aria-pressed', String(i === j)));
+  }));
+  document.getElementById('f').addEventListener('submit', e => {
+    e.preventDefault();
+    writeText(document.getElementById('t').value, pigment);
+    lastInput = performance.now();
+  });
+  document.getElementById('wind').addEventListener('click', () => { gust(); lastInput = performance.now(); });
+  document.getElementById('clear').addEventListener('click', () => {
+    dyes.forEach(d => d.fill(0)); u.fill(0); v.fill(0);
+  });
+
+  // main loop
+  let prev = performance.now(), frames = 0, fpsT = prev, nextPuff = prev + 3000;
+  function frame(now) {
+    const dt = Math.min(0.033, (now - prev) / 1000);
+    prev = now;
+    if (!reduceMotion && now > nextPuff && now - lastInput > 4000) {
+      const x = W * (0.15 + Math.random() * 0.7), y = H * (0.15 + Math.random() * 0.7);
+      const a = Math.random() * 6.28;
+      splat(x, y, Math.cos(a) * 220, Math.sin(a) * 220, 0, -1, W * 0.04);
+      nextPuff = now + 2200 + Math.random() * 2000;
+    }
+    step(reduceMotion ? dt * 0.5 : dt);
+    render();
+    frames++;
+    if (now - fpsT > 1000) {
+      statsEl.textContent = `${W}×${H} = ${(W * H).toLocaleString('vi-VN')} ô · ${Math.round(frames * 1000 / (now - fpsT))} khung/giây`;
+      frames = 0; fpsT = now;
+    }
+    requestAnimationFrame(frame);
+  }
+
+  alloc();
+  // opening composition: the greeting in gold leaf, a cinnabar seal, an eggshell wisp
+  const boot = () => {
+    writeText('Xin chào', 0);
+    splat(W * 0.86, H * 0.8, -60, -40, 2.4, 1, W * 0.025);
+    splat(W * 0.12, H * 0.22, 120, 30, 1.2, 2, W * 0.02);
+    render();
+    requestAnimationFrame(t => { prev = t; frame(t); });
+  };
+  (document.fonts && document.fonts.load
+    ? document.fonts.load('italic 600 40px "Cormorant Garamond"').catch(() => {})
+    : Promise.resolve()).then(boot, boot);
+
+  let rt;
+  addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      const r = canvas.getBoundingClientRect();
+      const nw = r.width < 600 ? 140 : 220;
+      if (nw !== W || Math.abs(Math.round(nw * r.height / r.width) - H) > 4) { alloc(); writeText('Xin chào', 0); }
+    }, 250);
+  });
+})();
+</script>
