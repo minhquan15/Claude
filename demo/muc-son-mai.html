@@ -46,7 +46,7 @@
     box-shadow: inset 0 0 0 6px var(--lacquer-2), 0 30px 60px -30px #000;
     padding: 6px;
   }
-  canvas {
+  #c {
     display: block;
     width: 100%;
     aspect-ratio: 16 / 10;
@@ -90,17 +90,19 @@
   }
   footer p { margin: 0; max-width: 62ch; }
   .stats { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  @media (max-width: 600px) { canvas { aspect-ratio: 3 / 4; } }
+  @media (max-width: 600px) { #c { aspect-ratio: 3 / 4; } }
+  #lotus { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); pointer-events: none; }
 </style>
 
 <div class="wrap">
   <header>
     <h1>Mực <em>Sơn Mài</em></h1>
-    <p class="lede">Kéo ngón tay hoặc chuột trên mặt sơn để khuấy mực. Gõ một chữ và xem nó tan ra như vàng lá trôi trên nước.</p>
+    <p class="lede">Kéo ngón tay hoặc chuột trên mặt sơn để khuấy mực. Gõ một chữ và xem nó tan ra như vàng lá trôi trên nước. Hoa sen nổi trên mặt và trôi theo dòng bạn khuấy.</p>
   </header>
 
   <div class="stage">
     <canvas id="c" aria-label="Mặt chất lỏng tương tác. Kéo để khuấy mực."></canvas>
+    <canvas id="lotus" aria-hidden="true"></canvas>
     <span class="hint" id="hint">Kéo để khuấy</span>
   </div>
 
@@ -116,13 +118,14 @@
       <button class="primary" type="submit">Viết</button>
     </form>
     <div class="group">
+      <button id="drop">Thả sen</button>
       <button id="wind">Thổi gió</button>
       <button id="clear">Lau sạch</button>
     </div>
   </div>
 
   <footer>
-    <p>Giải phương trình Navier–Stokes cho chất lỏng không nén (phương pháp Stable Fluids của Jos Stam, thêm vorticity confinement để giữ xoáy). Viết tay bằng JavaScript thuần, không thư viện.</p>
+    <p>Giải phương trình Navier–Stokes cho chất lỏng không nén (phương pháp Stable Fluids của Jos Stam, thêm vorticity confinement để giữ xoáy). Mỗi lá sen đọc vận tốc và độ xoáy của nước ngay dưới nó để trôi, xoay, và va nhẹ vào nhau. Viết tay bằng JavaScript thuần, không thư viện.</p>
     <span class="stats" id="stats">—</span>
   </footer>
 </div>
@@ -359,6 +362,164 @@
     dyes.forEach(d => d.fill(0)); u.fill(0); v.fill(0);
   });
 
+  // ---- floating lotus: rigid bodies carried by the fluid ----
+  const ov = document.getElementById('lotus');
+  const lctx = ov.getContext('2d');
+  const lotus = [], ripples = [];
+  let lotusW = 0, lotusH = 0;
+
+  function sample(f, x, y) {
+    const row = W + 2;
+    x = Math.max(0.5, Math.min(W + 0.5, x)); y = Math.max(0.5, Math.min(H + 0.5, y));
+    const i0 = x | 0, j0 = y | 0, s = x - i0, t = y - j0, a = i0 + row * j0;
+    return (1 - s) * ((1 - t) * f[a] + t * f[a + row]) + s * ((1 - t) * f[a + 1] + t * f[a + 1 + row]);
+  }
+
+  function addLotus(x, y, flower, splash) {
+    const r = W * (0.028 + Math.random() * 0.018);
+    lotus.push({ x, y, r, vx: 0, vy: 0, a: Math.random() * 6.28, av: 0, flower,
+      notch: 0.35 + Math.random() * 0.25, bloom: flower ? 0.15 : 0, seed: Math.random() * 6.28 });
+    if (lotus.length > 14) lotus.shift();
+    if (splash) {
+      ripples.push({ x, y, t: 0 });
+      for (let k = 0; k < 8; k++) {
+        const a = k / 8 * 6.28;
+        splat(x + Math.cos(a) * r, y + Math.sin(a) * r, Math.cos(a) * 160, Math.sin(a) * 160, 0, -1, r * 0.6);
+      }
+    }
+  }
+
+  // keep lotus in place when the grid is rebuilt at a new size
+  function rescaleLotus(ow, oh) {
+    if (!ow) return;
+    for (const L of lotus) { L.x *= W / ow; L.y *= H / oh; L.r *= W / ow; }
+    for (const R of ripples) { R.x *= W / ow; R.y *= H / oh; }
+  }
+
+  function updateLotus(dt) {
+    for (const L of lotus) {
+      // heavy pads lag behind the water; drag pulls them toward the local flow
+      const k = Math.min(1, dt * 2.2);
+      L.vx += (sample(u, L.x, L.y) - L.vx) * k;
+      L.vy += (sample(v, L.x, L.y) - L.vy) * k;
+      L.av += (sample(curl, L.x, L.y) * 0.8 - L.av) * Math.min(1, dt * 1.5);
+      L.x += L.vx * dt; L.y += L.vy * dt; L.a += L.av * dt;
+      const m = L.r * 0.9;
+      if (L.x < m) { L.x = m; L.vx = Math.abs(L.vx) * 0.3; }
+      if (L.x > W + 1 - m) { L.x = W + 1 - m; L.vx = -Math.abs(L.vx) * 0.3; }
+      if (L.y < m) { L.y = m; L.vy = Math.abs(L.vy) * 0.3; }
+      if (L.y > H + 1 - m) { L.y = H + 1 - m; L.vy = -Math.abs(L.vy) * 0.3; }
+      if (L.flower && L.bloom < 1) L.bloom = Math.min(1, L.bloom + dt * 0.35);
+    }
+    for (let i = 0; i < lotus.length; i++) for (let j = i + 1; j < lotus.length; j++) {
+      const A = lotus[i], B = lotus[j];
+      const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy) + 1e-4, min = (A.r + B.r) * 0.92;
+      if (d < min) {
+        const push = (min - d) / 2, nx = dx / d, ny = dy / d;
+        A.x -= nx * push; A.y -= ny * push; B.x += nx * push; B.y += ny * push;
+        const rel = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny;
+        if (rel < 0) { A.vx += nx * rel * 0.5; A.vy += ny * rel * 0.5; B.vx -= nx * rel * 0.5; B.vy -= ny * rel * 0.5; }
+      }
+    }
+    for (let i = ripples.length - 1; i >= 0; i--) if ((ripples[i].t += dt) > 1.6) ripples.splice(i, 1);
+  }
+
+  function drawPad(c, R, notch) {
+    c.save();
+    c.shadowColor = 'rgba(0,0,0,.55)'; c.shadowBlur = R * 0.35; c.shadowOffsetY = R * 0.12;
+    const g = c.createRadialGradient(-R * 0.2, -R * 0.2, R * 0.1, 0, 0, R);
+    g.addColorStop(0, '#5f8a4e'); g.addColorStop(0.75, '#355c38'); g.addColorStop(1, '#23402a');
+    c.fillStyle = g;
+    c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, R, notch / 2, Math.PI * 2 - notch / 2); c.closePath(); c.fill();
+    c.restore();
+    c.strokeStyle = 'rgba(200,220,160,.22)'; c.lineWidth = Math.max(0.6, R * 0.03);
+    c.beginPath();
+    for (let k = 1; k < 9; k++) {
+      const a = notch / 2 + (k / 9) * (Math.PI * 2 - notch);
+      c.moveTo(0, 0); c.lineTo(Math.cos(a) * R * 0.92, Math.sin(a) * R * 0.92);
+    }
+    c.stroke();
+    // thin gold rim, as lacquer painters edge a leaf with gold leaf
+    c.strokeStyle = 'rgba(212,171,82,.35)'; c.lineWidth = Math.max(0.6, R * 0.025);
+    c.beginPath(); c.arc(0, 0, R * 0.98, notch / 2, Math.PI * 2 - notch / 2); c.stroke();
+  }
+
+  function drawPetalRing(c, n, len, wid, lift, off, base, tip) {
+    for (let k = 0; k < n; k++) {
+      c.save();
+      c.rotate(off + (k / n) * Math.PI * 2);
+      const g = c.createLinearGradient(0, 0, 0, -len);
+      g.addColorStop(0, base); g.addColorStop(1, tip);
+      c.fillStyle = g;
+      c.beginPath();
+      c.moveTo(0, -len * 0.05);
+      c.bezierCurveTo(wid, -len * 0.35 * lift, wid * 0.7, -len * 0.85, 0, -len);
+      c.bezierCurveTo(-wid * 0.7, -len * 0.85, -wid, -len * 0.35 * lift, 0, -len * 0.05);
+      c.fill();
+      c.strokeStyle = 'rgba(120,30,50,.18)'; c.lineWidth = Math.max(0.5, wid * 0.05); c.stroke();
+      c.restore();
+    }
+  }
+
+  function drawFlower(c, R, bloom, seed) {
+    const b = 0.35 + 0.65 * bloom;
+    c.save();
+    c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = R * 0.25; c.shadowOffsetY = R * 0.08;
+    drawPetalRing(c, 8, R * 0.78 * b, R * 0.26, 1, seed, '#f7ebe3', '#e0708c');
+    c.restore();
+    drawPetalRing(c, 7, R * 0.6 * b, R * 0.22, 0.9, seed + 0.22, '#fbf1ea', '#e98aa2');
+    drawPetalRing(c, 5, R * 0.4 * b, R * 0.17, 0.8, seed + 0.6, '#fff7f1', '#f0a3b6');
+    const g = c.createRadialGradient(0, 0, 0, 0, 0, R * 0.17);
+    g.addColorStop(0, '#f3d27a'); g.addColorStop(1, '#c99a3c');
+    c.fillStyle = g; c.beginPath(); c.arc(0, 0, R * 0.15, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(120,80,20,.6)';
+    for (let k = 0; k < 6; k++) {
+      const a = seed + k * 1.047;
+      c.beginPath(); c.arc(Math.cos(a) * R * 0.08, Math.sin(a) * R * 0.08, R * 0.018, 0, Math.PI * 2); c.fill();
+    }
+  }
+
+  function drawLotus(now) {
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    const cw = Math.round(ov.clientWidth * dpr), ch = Math.round(ov.clientHeight * dpr);
+    if (cw !== lotusW || ch !== lotusH) { ov.width = lotusW = cw; ov.height = lotusH = ch; }
+    lctx.clearRect(0, 0, cw, ch);
+    const sx = cw / W, sy = ch / H;
+    for (const R of ripples) {
+      const k = R.t / 1.6;
+      lctx.strokeStyle = `rgba(237,227,207,${0.35 * (1 - k)})`;
+      lctx.lineWidth = 1.5 * dpr;
+      for (const f of [1, 0.6]) {
+        lctx.beginPath();
+        lctx.ellipse((R.x - 0.5) * sx, (R.y - 0.5) * sy, W * 0.12 * k * f * sx, W * 0.12 * k * f * sx * 0.9, 0, 0, Math.PI * 2);
+        lctx.stroke();
+      }
+    }
+    for (const L of lotus) {
+      const R = L.r * sx;
+      lctx.save();
+      lctx.translate((L.x - 0.5) * sx, (L.y - 0.5) * sy);
+      // gentle bob, as if riding tiny surface waves
+      const bob = 1 + 0.015 * Math.sin(now * 0.0017 + L.seed * 3);
+      lctx.scale(bob, bob);
+      lctx.rotate(L.a);
+      drawPad(lctx, R, L.notch);
+      if (L.flower) drawFlower(lctx, R * 1.15, L.bloom, L.seed);
+      lctx.restore();
+    }
+  }
+
+  function dropLotus() {
+    let best = null;
+    for (let t = 0; t < 12; t++) {
+      const x = W * (0.1 + Math.random() * 0.8), y = H * (0.12 + Math.random() * 0.76);
+      const d = lotus.reduce((m, L) => Math.min(m, Math.hypot(L.x - x, L.y - y) - L.r), 1e9);
+      if (!best || d > best.d) best = { x, y, d };
+    }
+    addLotus(best.x, best.y, Math.random() < 0.6, true);
+  }
+  document.getElementById('drop').addEventListener('click', () => { dropLotus(); lastInput = performance.now(); });
+
   // main loop
   let prev = performance.now(), frames = 0, fpsT = prev, nextPuff = prev + 3000;
   function frame(now) {
@@ -371,7 +532,9 @@
       nextPuff = now + 2200 + Math.random() * 2000;
     }
     step(reduceMotion ? dt * 0.5 : dt);
+    updateLotus(reduceMotion ? dt * 0.5 : dt);
     render();
+    drawLotus(now);
     frames++;
     if (now - fpsT > 1000) {
       statsEl.textContent = `${W}×${H} = ${(W * H).toLocaleString('vi-VN')} ô · ${Math.round(frames * 1000 / (now - fpsT))} khung/giây`;
@@ -386,7 +549,14 @@
     writeText('Xin chào', 0);
     splat(W * 0.86, H * 0.8, -60, -40, 2.4, 1, W * 0.025);
     splat(W * 0.12, H * 0.22, 120, 30, 1.2, 2, W * 0.02);
+    addLotus(W * 0.1, H * 0.78, true, false);
+    addLotus(W * 0.17, H * 0.86, false, false);
+    addLotus(W * 0.9, H * 0.2, true, false);
+    addLotus(W * 0.8, H * 0.13, false, false);
+    addLotus(W * 0.6, H * 0.85, true, false);
+    lotus.forEach(L => { L.bloom = 1; });
     render();
+    drawLotus(performance.now());
     requestAnimationFrame(t => { prev = t; frame(t); });
   };
   (document.fonts && document.fonts.load
@@ -399,7 +569,10 @@
     rt = setTimeout(() => {
       const r = canvas.getBoundingClientRect();
       const nw = r.width < 600 ? 140 : 220;
-      if (nw !== W || Math.abs(Math.round(nw * r.height / r.width) - H) > 4) { alloc(); writeText('Xin chào', 0); }
+      if (nw !== W || Math.abs(Math.round(nw * r.height / r.width) - H) > 4) {
+        const ow = W, oh = H;
+        alloc(); rescaleLotus(ow, oh); writeText('Xin chào', 0);
+      }
     }, 250);
   });
 })();
