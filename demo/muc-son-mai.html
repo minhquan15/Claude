@@ -82,6 +82,7 @@
   .write { display: flex; gap: 8px; flex: 1 1 280px; min-width: 0; }
   .write input { flex: 1; min-width: 0; font-family: var(--display); font-size: 18px; font-style: italic; padding-block: 5px; }
   .primary { border-color: var(--gold); color: var(--gold); }
+  #music[aria-pressed="true"] { background: var(--gold); color: var(--lacquer); }
 
   footer {
     display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
@@ -97,7 +98,7 @@
 <div class="wrap">
   <header>
     <h1>Mực <em>Sơn Mài</em></h1>
-    <p class="lede">Kéo ngón tay hoặc chuột trên mặt sơn để khuấy mực. Gõ một chữ và xem nó tan ra như vàng lá trôi trên nước. Hoa sen nổi trên mặt và trôi theo dòng bạn khuấy.</p>
+    <p class="lede">Kéo ngón tay hoặc chuột trên mặt sơn để khuấy mực. Gõ một chữ và xem nó tan ra như vàng lá trôi trên nước. Hoa sen nổi trên mặt và trôi theo dòng bạn khuấy. Bật nhạc để nghe mặt nước.</p>
   </header>
 
   <div class="stage">
@@ -118,6 +119,7 @@
       <button class="primary" type="submit">Viết</button>
     </form>
     <div class="group">
+      <button id="music" class="primary" aria-pressed="false">Bật nhạc</button>
       <button id="drop">Thả sen</button>
       <button id="wind">Thổi gió</button>
       <button id="clear">Lau sạch</button>
@@ -125,7 +127,7 @@
   </div>
 
   <footer>
-    <p>Giải phương trình Navier–Stokes cho chất lỏng không nén (phương pháp Stable Fluids của Jos Stam, thêm vorticity confinement để giữ xoáy). Mỗi lá sen đọc vận tốc và độ xoáy của nước ngay dưới nó để trôi, xoay, và va nhẹ vào nhau. Viết tay bằng JavaScript thuần, không thư viện.</p>
+    <p>Giải phương trình Navier–Stokes cho chất lỏng không nén (phương pháp Stable Fluids của Jos Stam, thêm vorticity confinement để giữ xoáy). Mỗi lá sen đọc vận tốc và độ xoáy của nước ngay dưới nó để trôi, xoay, và va nhẹ vào nhau. Âm thanh cũng được tổng hợp trực tiếp: tiếng đàn tranh dựng bằng thuật toán Karplus–Strong theo ngũ cung điệu Bắc (hò, xự, xang, xê, cống), còn tiếng nước to nhỏ theo tốc độ dòng chảy thật. Viết tay bằng JavaScript thuần, không thư viện.</p>
     <span class="stats" id="stats">—</span>
   </footer>
 </div>
@@ -340,6 +342,7 @@
       const t = s / steps;
       splat(last.x + dx * t, last.y + dy * t, dx * 14, dy * 14, 0.9 / steps + 0.25, pigment, W * 0.016);
     }
+    sound.stir(g.x, g.y, Math.hypot(dx, dy), g.t);
     last = g; lastInput = g.t;
   });
   const end = () => { last = null; };
@@ -354,13 +357,185 @@
   }));
   document.getElementById('f').addEventListener('submit', e => {
     e.preventDefault();
-    writeText(document.getElementById('t').value, pigment);
+    const txt = document.getElementById('t').value;
+    writeText(txt, pigment);
+    if (txt.trim()) sound.write(txt.trim().length);
     lastInput = performance.now();
   });
-  document.getElementById('wind').addEventListener('click', () => { gust(); lastInput = performance.now(); });
+  document.getElementById('wind').addEventListener('click', () => { gust(); sound.gust(); lastInput = performance.now(); });
   document.getElementById('clear').addEventListener('click', () => {
     dyes.forEach(d => d.fill(0)); u.fill(0); v.fill(0);
   });
+
+  // ---- sound: đàn tranh plucks in the northern pentatonic mode + water that follows the flow ----
+  const sound = (() => {
+    // hò, xự, xang, xê, cống: semitones above the tonic
+    const MODE = [0, 2, 5, 7, 9];
+    const NOTES = [];
+    for (let o = 0; o < 3; o++) for (const st of MODE) NOTES.push(130.81 * Math.pow(2, o + st / 12));
+    let ac = null, master, dry, wet, bufs = [], noiseGain, noiseFilter, on = false;
+    let lastPluck = 0, lastBump = 0, nextIdle = 0, walk = 7;
+
+    // Karplus–Strong: a burst of noise circulating in a short delay line decays like a plucked string
+    function string(freq) {
+      const sr = ac.sampleRate, n = Math.floor(sr * 3), N = Math.round(sr / freq);
+      const buf = ac.createBuffer(1, n, sr), d = buf.getChannelData(0), ring = new Float32Array(N);
+      let prevR = 0;
+      for (let i = 0; i < N; i++) { const r = Math.random() * 2 - 1; ring[i] = (r + prevR) * 0.5; prevR = r; }
+      const loss = 0.4985 + Math.min(0.0012, 60 / freq * 0.001);
+      let peak = 0;
+      for (let i = 0; i < n; i++) {
+        const k = i % N, out = ring[k];
+        ring[k] = loss * (out + ring[(k + 1) % N]);
+        d[i] = out; if (Math.abs(out) > peak) peak = Math.abs(out);
+      }
+      for (let i = 0; i < n; i++) d[i] /= peak;
+      for (let i = 0; i < 64; i++) d[i] *= i / 64;
+      return buf;
+    }
+
+    function impulse(sec) {
+      const sr = ac.sampleRate, n = Math.floor(sr * sec), b = ac.createBuffer(2, n, sr);
+      for (let c = 0; c < 2; c++) {
+        const d = b.getChannelData(c);
+        for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.6);
+      }
+      return b;
+    }
+
+    function init() {
+      ac = new (window.AudioContext || window.webkitAudioContext)();
+      master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
+      dry = ac.createGain(); dry.gain.value = 0.8; dry.connect(master);
+      const verb = ac.createConvolver(); verb.buffer = impulse(3.2);
+      wet = ac.createGain(); wet.gain.value = 0.45; wet.connect(verb); verb.connect(master);
+      bufs = NOTES.map(string);
+
+      // brown noise loop: the water bed
+      const n = ac.sampleRate * 4, nb = ac.createBuffer(1, n, ac.sampleRate), nd = nb.getChannelData(0);
+      let last = 0;
+      for (let i = 0; i < n; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; nd[i] = last * 3.5; }
+      const src = ac.createBufferSource(); src.buffer = nb; src.loop = true;
+      noiseFilter = ac.createBiquadFilter(); noiseFilter.type = 'lowpass'; noiseFilter.frequency.value = 400; noiseFilter.Q.value = 0.7;
+      noiseGain = ac.createGain(); noiseGain.gain.value = 0.02;
+      src.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(dry); noiseGain.connect(wet);
+      src.start();
+
+      // a low, slowly breathing drone on the tonic and fifth
+      for (const [f, g] of [[65.41, 0.05], [98.0, 0.03]]) {
+        const o = ac.createOscillator(), og = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain();
+        o.type = 'sine'; o.frequency.value = f; og.gain.value = g;
+        lfo.frequency.value = 0.05 + Math.random() * 0.05; lg.gain.value = g * 0.6;
+        lfo.connect(lg); lg.connect(og.gain); o.connect(og); og.connect(dry); og.connect(wet);
+        o.start(); lfo.start();
+      }
+    }
+
+    function out(pan) {
+      const p = ac.createStereoPanner ? ac.createStereoPanner() : null;
+      if (p) { p.pan.value = Math.max(-1, Math.min(1, pan)); p.connect(dry); p.connect(wet); return p; }
+      const g = ac.createGain(); g.connect(dry); g.connect(wet); return g;
+    }
+
+    // bend: semitones to glide up after the pluck, the đàn tranh "nhấn"
+    function pluck(idx, vel, pan, bend = 0, delay = 0) {
+      if (!on) return;
+      idx = Math.max(0, Math.min(bufs.length - 1, Math.round(idx)));
+      const t = ac.currentTime + delay;
+      const src = ac.createBufferSource(), g = ac.createGain();
+      src.buffer = bufs[idx];
+      if (bend) {
+        src.playbackRate.setValueAtTime(1, t + 0.12);
+        src.playbackRate.linearRampToValueAtTime(Math.pow(2, bend / 12), t + 0.4);
+        src.playbackRate.linearRampToValueAtTime(1, t + 1.1);
+      }
+      g.gain.setValueAtTime(vel, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 2.8);
+      src.connect(g); g.connect(out(pan));
+      src.start(t); src.stop(t + 3);
+    }
+
+    function drip(pan) {
+      if (!on) return;
+      const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(900, t); o.frequency.exponentialRampToValueAtTime(220, t + 0.18);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+      o.connect(g); g.connect(out(pan)); o.start(t); o.stop(t + 0.35);
+    }
+
+    return {
+      get on() { return on; },
+      async toggle() {
+        if (!ac) init();
+        on = !on;
+        if (on) await ac.resume();
+        const t = ac.currentTime;
+        master.gain.cancelScheduledValues(t);
+        master.gain.setTargetAtTime(on ? 0.9 : 0, t, 0.25);
+        if (on) [0, 2, 4, 5, 7].forEach((k, i) => pluck(5 + k, 0.35, -0.4 + i * 0.2, 0, i * 0.14));
+        return on;
+      },
+      suspend(hidden) { if (ac && on) hidden ? ac.suspend() : ac.resume(); },
+      // speed: mean fluid speed in cells/second
+      water(speed) {
+        if (!on) return;
+        const t = ac.currentTime;
+        noiseGain.gain.setTargetAtTime(0.015 + Math.min(0.2, speed / 120 * 0.2), t, 0.3);
+        noiseFilter.frequency.setTargetAtTime(260 + Math.min(2600, speed * 45), t, 0.3);
+      },
+      stir(x, y, dist, now) {
+        if (!on || now - lastPluck < Math.max(85, 240 - dist * 20)) return;
+        lastPluck = now;
+        pluck((1 - y / H) * (NOTES.length - 1), Math.min(0.55, 0.15 + dist * 0.05), x / W * 2 - 1, Math.random() < 0.18 ? 2 : 0);
+      },
+      bump(x, strength, now) {
+        if (!on || strength < 3 || now - lastBump < 140) return;
+        lastBump = now;
+        pluck(10 + Math.floor(Math.random() * 5), Math.min(0.3, 0.06 + strength * 0.01), x / W * 2 - 1);
+      },
+      drop(x) {
+        drip(x / W * 2 - 1);
+        pluck(Math.floor(Math.random() * 5), 0.45, x / W * 2 - 1, 2, 0.08);
+      },
+      write(len) {
+        const n = Math.min(9, Math.max(3, len));
+        for (let i = 0; i < n; i++) pluck(3 + i, 0.3, -0.6 + 1.2 * i / n, i === n - 1 ? 2 : 0, i * 0.12);
+      },
+      gust() {
+        if (!on) return;
+        const t = ac.currentTime;
+        noiseGain.gain.setTargetAtTime(0.28, t, 0.08);
+        noiseFilter.frequency.setTargetAtTime(3200, t, 0.1);
+      },
+      // when nobody is touching the water, the zither plays to itself
+      idle(now) {
+        if (!on || now < nextIdle) return;
+        nextIdle = now + 1800 + Math.random() * 2800;
+        walk = Math.max(2, Math.min(12, walk + [-2, -1, 1, 2][Math.random() * 4 | 0]));
+        pluck(walk, 0.2, Math.random() * 1.4 - 0.7, Math.random() < 0.25 ? 2 : 0);
+        if (Math.random() < 0.3) pluck(walk - 5, 0.12, 0, 0, 0.35);
+      },
+    };
+  })();
+
+  const musicBtn = document.getElementById('music');
+  musicBtn.addEventListener('click', async () => {
+    const on = await sound.toggle();
+    musicBtn.setAttribute('aria-pressed', String(on));
+    musicBtn.textContent = on ? 'Tắt nhạc' : 'Bật nhạc';
+  });
+  document.addEventListener('visibilitychange', () => sound.suspend(document.hidden));
+
+  function meanSpeed() {
+    let sum = 0, n = 0;
+    const row = W + 2;
+    for (let j = 2; j <= H; j += 4) for (let i = 2; i <= W; i += 4) {
+      const k = i + row * j; sum += Math.hypot(u[k], v[k]); n++;
+    }
+    return sum / n;
+  }
 
   // ---- floating lotus: rigid bodies carried by the fluid ----
   const ov = document.getElementById('lotus');
@@ -418,6 +593,7 @@
         const push = (min - d) / 2, nx = dx / d, ny = dy / d;
         A.x -= nx * push; A.y -= ny * push; B.x += nx * push; B.y += ny * push;
         const rel = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny;
+        if (rel < -3) sound.bump((A.x + B.x) / 2, -rel, performance.now());
         if (rel < 0) { A.vx += nx * rel * 0.5; A.vy += ny * rel * 0.5; B.vx -= nx * rel * 0.5; B.vy -= ny * rel * 0.5; }
       }
     }
@@ -517,6 +693,7 @@
       if (!best || d > best.d) best = { x, y, d };
     }
     addLotus(best.x, best.y, Math.random() < 0.6, true);
+    sound.drop(best.x);
   }
   document.getElementById('drop').addEventListener('click', () => { dropLotus(); lastInput = performance.now(); });
 
@@ -535,6 +712,10 @@
     updateLotus(reduceMotion ? dt * 0.5 : dt);
     render();
     drawLotus(now);
+    if (sound.on) {
+      if (frames % 6 === 0) sound.water(meanSpeed());
+      if (now - lastInput > 3000) sound.idle(now);
+    }
     frames++;
     if (now - fpsT > 1000) {
       statsEl.textContent = `${W}×${H} = ${(W * H).toLocaleString('vi-VN')} ô · ${Math.round(frames * 1000 / (now - fpsT))} khung/giây`;
