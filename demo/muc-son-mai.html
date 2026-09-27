@@ -127,7 +127,7 @@
   </div>
 
   <footer>
-    <p>Giải phương trình Navier–Stokes cho chất lỏng không nén (phương pháp Stable Fluids của Jos Stam, thêm vorticity confinement để giữ xoáy). Mỗi lá sen đọc vận tốc và độ xoáy của nước ngay dưới nó để trôi, xoay, và va nhẹ vào nhau. Âm thanh cũng được tổng hợp trực tiếp: tiếng đàn tranh dựng bằng thuật toán Karplus–Strong theo ngũ cung điệu Bắc (hò, xự, xang, xê, cống), còn tiếng nước to nhỏ theo tốc độ dòng chảy thật. Viết tay bằng JavaScript thuần, không thư viện.</p>
+    <p>Giải phương trình Navier–Stokes cho chất lỏng không nén (phương pháp Stable Fluids của Jos Stam, thêm vorticity confinement để giữ xoáy). Mỗi lá sen đọc vận tốc và độ xoáy của nước ngay dưới nó để trôi, xoay, và va nhẹ vào nhau. Âm thanh cũng được tổng hợp trực tiếp: tiếng đàn guzheng (古筝) dựng bằng thuật toán Karplus–Strong, lên dây giọng Rê theo ngũ cung cung, thương, giốc, chủy, vũ, có vuốt dây (刮奏), rung dây (揉弦) và nhấn dây (按音), còn tiếng nước to nhỏ theo tốc độ dòng chảy thật. Viết tay bằng JavaScript thuần, không thư viện.</p>
     <span class="stats" id="stats">—</span>
   </footer>
 </div>
@@ -367,30 +367,37 @@
     dyes.forEach(d => d.fill(0)); u.fill(0); v.fill(0);
   });
 
-  // ---- sound: đàn tranh plucks in the northern pentatonic mode + water that follows the flow ----
+  // ---- sound: guzheng in D gong mode + water that follows the flow ----
   const sound = (() => {
-    // hò, xự, xang, xê, cống: semitones above the tonic
-    const MODE = [0, 2, 5, 7, 9];
+    // cung, thương, giốc, chủy, vũ (宫商角徵羽): D E F# A B, the guzheng's standard D tuning
+    const MODE = [0, 2, 4, 7, 9];
     const NOTES = [];
-    for (let o = 0; o < 3; o++) for (const st of MODE) NOTES.push(130.81 * Math.pow(2, o + st / 12));
-    let ac = null, master, dry, wet, bufs = [], noiseGain, noiseFilter, on = false;
+    for (let o = 0; o < 3; o++) for (const st of MODE) NOTES.push(146.83 * Math.pow(2, o + st / 12));
+    // 按音: press the string behind the bridge to reach the missing degrees (F#→G is a half step)
+    const bendFor = idx => (idx % 5 === 2 ? 1 : 2);
+    let ac = null, master, dry, wet, body, bufs = [], noiseGain, noiseFilter, on = false;
     let lastPluck = 0, lastBump = 0, nextIdle = 0, walk = 7;
 
-    // Karplus–Strong: a burst of noise circulating in a short delay line decays like a plucked string
-    function string(freq) {
-      const sr = ac.sampleRate, n = Math.floor(sr * 3), N = Math.round(sr / freq);
+    // Karplus–Strong tuned for a steel guzheng string: a bright, unsmoothed pluck near the bridge,
+    // a gentle loop filter so overtones ring, and a decay time (T60) that shortens up the register
+    function string(freq, t60) {
+      const sr = ac.sampleRate, n = Math.floor(sr * 4.2), N = Math.round(sr / freq);
       const buf = ac.createBuffer(1, n, sr), d = buf.getChannelData(0), ring = new Float32Array(N);
-      let prevR = 0;
-      for (let i = 0; i < N; i++) { const r = Math.random() * 2 - 1; ring[i] = (r + prevR) * 0.5; prevR = r; }
-      const loss = 0.4985 + Math.min(0.0012, 60 / freq * 0.001);
+      const noise = Array.from({ length: N }, () => Math.random() * 2 - 1);
+      const pick = Math.max(1, Math.round(N * 0.12)); // fingernail pick 12% from the bridge
+      for (let i = 0; i < N; i++) ring[i] = noise[i] - noise[(i + pick) % N];
+      // divide out the loop filter's own loss at the fundamental so the note rings for t60
+      const b = 0.3, w = 2 * Math.PI * freq / sr;
+      const lf = Math.sqrt((1 - b) * (1 - b) + b * b + 2 * b * (1 - b) * Math.cos(w));
+      const c = Math.min(0.99995, Math.pow(10, -3 / (t60 * freq)) / lf);
       let peak = 0;
       for (let i = 0; i < n; i++) {
         const k = i % N, out = ring[k];
-        ring[k] = loss * (out + ring[(k + 1) % N]);
+        ring[k] = c * ((1 - b) * out + b * ring[(k + 1) % N]);
         d[i] = out; if (Math.abs(out) > peak) peak = Math.abs(out);
       }
       for (let i = 0; i < n; i++) d[i] /= peak;
-      for (let i = 0; i < 64; i++) d[i] *= i / 64;
+      for (let i = 0; i < 24; i++) d[i] *= i / 24;
       return buf;
     }
 
@@ -409,7 +416,12 @@
       dry = ac.createGain(); dry.gain.value = 0.8; dry.connect(master);
       const verb = ac.createConvolver(); verb.buffer = impulse(3.2);
       wet = ac.createGain(); wet.gain.value = 0.45; wet.connect(verb); verb.connect(master);
-      bufs = NOTES.map(string);
+      bufs = NOTES.map((f, i) => string(f, 4.2 - 2.6 * i / (NOTES.length - 1)));
+
+      // the wooden soundboard: warm body resonance plus the steel strings' bright edge
+      const lowBody = ac.createBiquadFilter(); lowBody.type = 'peaking'; lowBody.frequency.value = 220; lowBody.Q.value = 1.2; lowBody.gain.value = 4;
+      const air = ac.createBiquadFilter(); air.type = 'highshelf'; air.frequency.value = 2800; air.gain.value = 5;
+      body = lowBody; lowBody.connect(air); air.connect(dry); air.connect(wet);
 
       // brown noise loop: the water bed
       const n = ac.sampleRate * 4, nb = ac.createBuffer(1, n, ac.sampleRate), nd = nb.getChannelData(0);
@@ -422,7 +434,7 @@
       src.start();
 
       // a low, slowly breathing drone on the tonic and fifth
-      for (const [f, g] of [[65.41, 0.05], [98.0, 0.03]]) {
+      for (const [f, g] of [[73.42, 0.045], [110.0, 0.025]]) {
         const o = ac.createOscillator(), og = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain();
         o.type = 'sine'; o.frequency.value = f; og.gain.value = g;
         lfo.frequency.value = 0.05 + Math.random() * 0.05; lg.gain.value = g * 0.6;
@@ -433,26 +445,51 @@
 
     function out(pan) {
       const p = ac.createStereoPanner ? ac.createStereoPanner() : null;
-      if (p) { p.pan.value = Math.max(-1, Math.min(1, pan)); p.connect(dry); p.connect(wet); return p; }
-      const g = ac.createGain(); g.connect(dry); g.connect(wet); return g;
+      if (p) { p.pan.value = Math.max(-1, Math.min(1, pan)); p.connect(body); return p; }
+      const g = ac.createGain(); g.connect(body); return g;
     }
 
-    // bend: semitones to glide up after the pluck, the đàn tranh "nhấn"
-    function pluck(idx, vel, pan, bend = 0, delay = 0) {
+    // bend: press 按音 up this many semitones after the pluck; vib: 揉弦 left-hand vibrato depth
+    function pluck(idx, vel, pan, bend = 0, delay = 0, vib = 1) {
       if (!on) return;
       idx = Math.max(0, Math.min(bufs.length - 1, Math.round(idx)));
-      const t = ac.currentTime + delay;
-      const src = ac.createBufferSource(), g = ac.createGain();
-      src.buffer = bufs[idx];
-      if (bend) {
-        src.playbackRate.setValueAtTime(1, t + 0.12);
-        src.playbackRate.linearRampToValueAtTime(Math.pow(2, bend / 12), t + 0.4);
-        src.playbackRate.linearRampToValueAtTime(1, t + 1.1);
+      const t = ac.currentTime + delay, end = t + 4.2;
+      const g = ac.createGain(), dest = out(pan);
+      // two copies a few cents apart: the shimmer of a steel string beating against itself
+      const srcs = [[1, 1], [1.0018, 0.3]].map(([rate, level]) => {
+        const src = ac.createBufferSource(), sg = ac.createGain();
+        src.buffer = bufs[idx]; sg.gain.value = level;
+        src.playbackRate.setValueAtTime(rate, t);
+        if (bend) {
+          src.playbackRate.setValueAtTime(rate, t + 0.15);
+          src.playbackRate.linearRampToValueAtTime(rate * Math.pow(2, bend / 12), t + 0.45);
+          src.playbackRate.setValueAtTime(rate * Math.pow(2, bend / 12), t + 0.9);
+          src.playbackRate.linearRampToValueAtTime(rate, t + 1.3);
+        }
+        src.connect(sg); sg.connect(g); src.start(t); src.stop(end);
+        return src;
+      });
+      if (vib) {
+        const lfo = ac.createOscillator(), lg = ac.createGain();
+        lfo.frequency.value = 5 + Math.random() * 1.2;
+        lg.gain.setValueAtTime(0, t);
+        lg.gain.linearRampToValueAtTime(0, t + 0.35);
+        lg.gain.linearRampToValueAtTime(0.007 * vib, t + 0.9);
+        lfo.connect(lg); srcs.forEach(src => lg.connect(src.playbackRate));
+        lfo.start(t); lfo.stop(end);
       }
       g.gain.setValueAtTime(vel, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 2.8);
-      src.connect(g); g.connect(out(pan));
-      src.start(t); src.stop(t + 3);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 4);
+      g.connect(dest);
+    }
+
+    // 刮奏: sweep a fingertip across the strings, the guzheng's signature cascade
+    function gliss(from, to, dur, vel, delay = 0) {
+      const steps = Math.abs(to - from), dir = Math.sign(to - from);
+      for (let k = 0; k <= steps; k++) {
+        const f = k / Math.max(1, steps);
+        pluck(from + dir * k, vel * (0.55 + 0.45 * Math.sin(f * Math.PI)), -0.7 + 1.4 * (dir > 0 ? f : 1 - f), 0, delay + f * dur, 0);
+      }
     }
 
     function drip(pan) {
@@ -474,7 +511,7 @@
         const t = ac.currentTime;
         master.gain.cancelScheduledValues(t);
         master.gain.setTargetAtTime(on ? 0.9 : 0, t, 0.25);
-        if (on) [0, 2, 4, 5, 7].forEach((k, i) => pluck(5 + k, 0.35, -0.4 + i * 0.2, 0, i * 0.14));
+        if (on) { gliss(0, 14, 0.9, 0.32); pluck(7, 0.4, 0, 0, 1.2); pluck(9, 0.32, 0.2, 2, 1.5); }
         return on;
       },
       suspend(hidden) { if (ac && on) hidden ? ac.suspend() : ac.resume(); },
@@ -488,33 +525,40 @@
       stir(x, y, dist, now) {
         if (!on || now - lastPluck < Math.max(85, 240 - dist * 20)) return;
         lastPluck = now;
-        pluck((1 - y / H) * (NOTES.length - 1), Math.min(0.55, 0.15 + dist * 0.05), x / W * 2 - 1, Math.random() < 0.18 ? 2 : 0);
+        const idx = Math.round((1 - y / H) * (NOTES.length - 1));
+        // a fast flick becomes a short sweep; a slow drag plucks single notes
+        if (dist > 7) gliss(idx, Math.max(0, Math.min(14, idx + (Math.random() < 0.5 ? 4 : -4))), 0.22, 0.3);
+        else pluck(idx, Math.min(0.5, 0.15 + dist * 0.05), x / W * 2 - 1, Math.random() < 0.18 ? bendFor(idx) : 0);
       },
       bump(x, strength, now) {
         if (!on || strength < 3 || now - lastBump < 140) return;
         lastBump = now;
-        pluck(10 + Math.floor(Math.random() * 5), Math.min(0.3, 0.06 + strength * 0.01), x / W * 2 - 1);
+        pluck(10 + Math.floor(Math.random() * 5), Math.min(0.28, 0.06 + strength * 0.01), x / W * 2 - 1, 0, 0, 0);
       },
       drop(x) {
         drip(x / W * 2 - 1);
-        pluck(Math.floor(Math.random() * 5), 0.45, x / W * 2 - 1, 2, 0.08);
+        const idx = Math.floor(Math.random() * 5);
+        pluck(idx, 0.45, x / W * 2 - 1, bendFor(idx), 0.08);
       },
       write(len) {
         const n = Math.min(9, Math.max(3, len));
-        for (let i = 0; i < n; i++) pluck(3 + i, 0.3, -0.6 + 1.2 * i / n, i === n - 1 ? 2 : 0, i * 0.12);
+        gliss(2, 12, 0.5, 0.26);
+        for (let i = 0; i < n; i++) pluck(5 + ((i * 3) % 7), 0.32, -0.6 + 1.2 * i / n, i === n - 1 ? bendFor(5 + ((i * 3) % 7)) : 0, 0.7 + i * 0.16);
       },
       gust() {
         if (!on) return;
         const t = ac.currentTime;
         noiseGain.gain.setTargetAtTime(0.28, t, 0.08);
         noiseFilter.frequency.setTargetAtTime(3200, t, 0.1);
+        gliss(14, 2, 0.7, 0.28);
       },
-      // when nobody is touching the water, the zither plays to itself
+      // when nobody is touching the water, the guzheng plays to itself
       idle(now) {
         if (!on || now < nextIdle) return;
         nextIdle = now + 1800 + Math.random() * 2800;
         walk = Math.max(2, Math.min(12, walk + [-2, -1, 1, 2][Math.random() * 4 | 0]));
-        pluck(walk, 0.2, Math.random() * 1.4 - 0.7, Math.random() < 0.25 ? 2 : 0);
+        pluck(walk, 0.2, Math.random() * 1.4 - 0.7, Math.random() < 0.25 ? bendFor(walk) : 0);
+        if (Math.random() < 0.12) gliss(walk + 4, walk - 2, 0.35, 0.12, 0.5);
         if (Math.random() < 0.3) pluck(walk - 5, 0.12, 0, 0, 0.35);
       },
     };
