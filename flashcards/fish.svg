@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>
+    <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bfeaff"/>
+      <stop offset="1" stop-color="#5ec3ea"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff9a3c"/>
+      <stop offset="1" stop-color="#ff7a1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="#fdfcf7"/>
+  <rect x="40" y="40" width="1000" height="1000" rx="56" fill="url(#water)" stroke="#2b6f93" stroke-width="10"/>
+  <!-- light rays -->
+  <g fill="#ffffff" opacity="0.18">
+    <polygon points="200,50 280,50 420,640 300,640"/>
+    <polygon points="520,50 580,50 640,640 560,640"/>
+    <polygon points="760,50 840,50 800,640 720,640"/>
+  </g>
+  <!-- sand -->
+  <path d="M40 700 Q300 650 540 690 T1040 680 L1040 984 Q1040 1040 984 1040 L96 1040 Q40 1040 40 984 Z" fill="#f2d49b"/>
+  <!-- seaweed -->
+  <g fill="none" stroke="#3aa76d" stroke-width="22" stroke-linecap="round">
+    <path d="M130 700 Q90 640 130 590 T130 480"/>
+    <path d="M175 705 Q215 650 175 600 T180 520"/>
+    <path d="M930 700 Q970 640 930 585 T935 470"/>
+    <path d="M880 705 Q845 655 880 610 T875 540"/>
+  </g>
+  <!-- rocks and shell -->
+  <ellipse cx="860" cy="715" rx="46" ry="30" fill="#9aa5b1"/>
+  <ellipse cx="905" cy="722" rx="30" ry="20" fill="#b3bcc6"/>
+  <!-- bubbles -->
+  <g fill="#ffffff" fill-opacity="0.45" stroke="#ffffff" stroke-width="5">
+    <circle cx="760" cy="250" r="22"/>
+    <circle cx="800" cy="190" r="14"/>
+    <circle cx="745" cy="130" r="10"/>
+    <circle cx="300" cy="170" r="16"/>
+    <circle cx="260" cy="110" r="9"/>
+  </g>
+  <!-- fish -->
+  <g transform="translate(540 395)">
+    <!-- tail -->
+    <path d="M190 0 L330 -105 Q300 0 330 105 Z" fill="#ff6a00" stroke="#c24d00" stroke-width="10" stroke-linejoin="round"/>
+    <!-- top fin -->
+    <path d="M-60 -120 Q10 -230 110 -125 Q30 -95 -60 -120 Z" fill="#ff6a00" stroke="#c24d00" stroke-width="10" stroke-linejoin="round"/>
+    <!-- bottom fin -->
+    <path d="M20 122 Q75 225 150 112 Q85 100 20 122 Z" fill="#ff6a00" stroke="#c24d00" stroke-width="10" stroke-linejoin="round"/>
+    <!-- body -->
+    <ellipse cx="0" cy="0" rx="225" ry="135" fill="url(#body)" stroke="#c24d00" stroke-width="12"/>
+    <!-- stripes -->
+    <g fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" opacity="0.9">
+      <path d="M-60 -112 Q-90 0 -60 112"/>
+      <path d="M30 -122 Q0 0 30 122"/>
+    </g>
+    <!-- belly highlight -->
+    <path d="M-150 60 Q-60 118 10 100" fill="none" stroke="#ffd9a8" stroke-width="16" stroke-linecap="round" opacity="0.8"/>
+    <!-- side fin -->
+    <path d="M165 25 Q105 40 100 85 Q165 88 190 40 Z" fill="#ff8a2e" stroke="#c24d00" stroke-width="9" stroke-linejoin="round"/>
+    <!-- eye -->
+    <circle cx="-135" cy="-30" r="38" fill="#fff" stroke="#c24d00" stroke-width="8"/>
+    <circle cx="-143" cy="-28" r="19" fill="#1d2731"/>
+    <circle cx="-150" cy="-36" r="7" fill="#fff"/>
+    <!-- smile -->
+    <path d="M-215 28 Q-180 62 -145 35" fill="none" stroke="#8f3a00" stroke-width="9" stroke-linecap="round"/>
+    <!-- cheek -->
+    <circle cx="-150" cy="22" r="14" fill="#ff5a5a" opacity="0.55"/>
+  </g>
+  <!-- word -->
+  <rect x="190" y="735" width="700" height="225" rx="40" fill="#ffffff" stroke="#2b6f93" stroke-width="8"/>
+  <text x="540" y="855" text-anchor="middle" font-family="'Comic Sans MS','Chalkboard SE','DejaVu Sans',sans-serif" font-weight="700" font-size="124" fill="#1d4f6b">Fish</text>
+  <text x="540" y="930" text-anchor="middle" font-family="'DejaVu Sans','Arial',sans-serif" font-size="48" fill="#4d7f99">/fɪʃ/</text>
+  <text x="540" y="1006" text-anchor="middle" font-family="'Comic Sans MS','Chalkboard SE','DejaVu Sans',sans-serif" font-size="46" fill="#17455f">A fish can swim.</text>
+</svg>
