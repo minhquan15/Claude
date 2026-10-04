@@ -1,4 +1,5 @@
 snapshots/
-renders/
+renders/render.log
+renders/sheet/
 node_modules/
 .hyperframes/
