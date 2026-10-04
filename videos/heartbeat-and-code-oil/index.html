@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 1920px; height: 1080px; overflow: hidden; }
+      .frame { position: absolute; inset: 0; width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="165.46"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div
+        id="el-01-f1-intro"
+        class="frame"
+        data-composition-id="01-f1-intro"
+        data-composition-src="compositions/frames/01-f1-intro.html"
+        data-start="0"
+        data-duration="10.147"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-02-f2-city"
+        class="frame"
+        data-composition-id="02-f2-city"
+        data-composition-src="compositions/frames/02-f2-city.html"
+        data-start="10.147"
+        data-duration="20.201"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-03-f3-storm"
+        class="frame"
+        data-composition-id="03-f3-storm"
+        data-composition-src="compositions/frames/03-f3-storm.html"
+        data-start="30.348"
+        data-duration="10.124"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-04-f4-road"
+        class="frame"
+        data-composition-id="04-f4-road"
+        data-composition-src="compositions/frames/04-f4-road.html"
+        data-start="40.472"
+        data-duration="20.202"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-05-f5-stars"
+        class="frame"
+        data-composition-id="05-f5-stars"
+        data-composition-src="compositions/frames/05-f5-stars.html"
+        data-start="60.674"
+        data-duration="20.201"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-06-f6-lights"
+        class="frame"
+        data-composition-id="06-f6-lights"
+        data-composition-src="compositions/frames/06-f6-lights.html"
+        data-start="80.875"
+        data-duration="10.124"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-07-f7-sunflowers"
+        class="frame"
+        data-composition-id="07-f7-sunflowers"
+        data-composition-src="compositions/frames/07-f7-sunflowers.html"
+        data-start="90.999"
+        data-duration="20.201"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-08-f8-sea"
+        class="frame"
+        data-composition-id="08-f8-sea"
+        data-composition-src="compositions/frames/08-f8-sea.html"
+        data-start="111.2"
+        data-duration="20.225"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-09-f9-sunrise"
+        class="frame"
+        data-composition-id="09-f9-sunrise"
+        data-composition-src="compositions/frames/09-f9-sunrise.html"
+        data-start="131.425"
+        data-duration="19.574"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-10-f10-outro"
+        class="frame"
+        data-composition-id="10-f10-outro"
+        data-composition-src="compositions/frames/10-f10-outro.html"
+        data-start="150.999"
+        data-duration="14.461"
+        data-track-index="1"
+      ></div>
+
+      <!-- BGM -->
+      <audio id="el-bgm" src="assets/bgm.mp3" data-start="0" data-duration="165.46"
+        data-track-index="11" data-volume="0.9"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

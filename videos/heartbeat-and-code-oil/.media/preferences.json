@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "preferences": {
+    "destination": {
+      "value": "youtube",
+      "confirmed_in": [
+        "heartbeat-and-code-oil"
+      ],
+      "updated_at": "2026-10-04T13:27:53.247Z"
+    },
+    "aspect": {
+      "value": "1920x1080",
+      "confirmed_in": [
+        "heartbeat-and-code-oil"
+      ],
+      "updated_at": "2026-10-04T13:27:53.322Z"
+    },
+    "flow": {
+      "value": "automation",
+      "confirmed_in": [
+        "heartbeat-and-code-oil"
+      ],
+      "updated_at": "2026-10-04T13:27:53.406Z"
+    },
+    "storyboard": {
+      "value": "no",
+      "confirmed_in": [
+        "heartbeat-and-code-oil"
+      ],
+      "updated_at": "2026-10-04T13:27:53.472Z"
+    }
+  },
+  "sightings": {}
+}
