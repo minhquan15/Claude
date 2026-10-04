@@ -96,7 +96,7 @@ export function buildMembrane(rng, ctx) {
          } else {
            float l = dot(outgoingLight, vec3(0.333));
            col = uInner * (0.5 + 0.8 * l) + uInner * uCytoGlow * 0.5;
-           a = 0.34 + fres * 0.3 + uCytoGlow * 0.25;
+           a = 0.46 + fres * 0.3 + uCytoGlow * 0.25;
          }
          gl_FragColor = vec4(col, a * uAlpha);`
       );

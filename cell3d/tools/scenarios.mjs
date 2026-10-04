@@ -15,7 +15,7 @@ for (const [name, w, h] of FRAMES) {
   const page = await ctx.newPage();
   page.on('console', (m) => { if (['warning', 'error'].includes(m.type())) issues.push(`${name}: [${m.type()}] ${m.text()}`); });
   page.on('pageerror', (e) => issues.push(`${name}: [pageerror] ${e.message}`));
-  await page.goto('http://localhost:8123/index.html?debug');
+  await page.goto('http://localhost:8123/index.html');
   await page.waitForFunction(() => document.documentElement.dataset.ready === 'true', null, { timeout: 120000 });
   await page.waitForTimeout(1500);
   const shot = async (label) => {

@@ -55,9 +55,9 @@ export function buildMitochondria(rng, ctx) {
   const outerSolidMat = createMaterial('mitochondria', { color, roughness: 0.4, inner: true, opacity: 1 });
   const outerCutMat = createMaterial('mitochondria', { color, roughness: 0.4, inner: '#d9706c', opacity: 0.9 });
   const innerMat = createMaterial('mitochondria', {
-    color: color.clone().lerp(new THREE.Color('#ffc2b8'), 0.4), roughness: 0.5, inner: '#f0a096', opacity: 1,
+    color: color.clone().lerp(new THREE.Color('#ffc2b8'), 0.25), roughness: 0.5, inner: '#cf7f78', opacity: 1,
   });
-  const cristaMat = createMaterial('mitochondria', { color: '#ffc4b5', roughness: 0.55, double: true, opacity: 1 });
+  const cristaMat = createMaterial('mitochondria', { color: '#ff9a8d', roughness: 0.6, double: true, opacity: 1 });
 
   const nSolid = MITO_TOTAL - MITO_SLICED;
   const solid = new THREE.InstancedMesh(solidGeo, outerSolidMat, nSolid);

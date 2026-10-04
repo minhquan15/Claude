@@ -1,5 +1,5 @@
 import { ORGANELLES, ORG, UI } from '../data/organelles.js';
-import { h } from './dom.js';
+import { h, textSafe } from './dom.js';
 import { ICON } from './icons.js';
 
 /**
@@ -47,7 +47,7 @@ export function createPanel({ root, selection, clipping, labels, tour, pathway, 
     }
     const o = ORG[id];
     infoBody.append(
-      h('article', { class: 'card', style: `--c:${o.color}` },
+      h('article', { class: 'card', style: `--c:${o.color};--ct:${textSafe(o.color)}` },
         h('header', {},
           h('h2', {}, o.name),
           h('p', { class: 'en' }, o.en)),

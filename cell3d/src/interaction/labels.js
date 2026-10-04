@@ -3,6 +3,7 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import { ORGANELLES, TOUR_ORDER } from '../data/organelles.js';
 import { clipPlane } from '../builders/materials.js';
 import { NUC } from '../layout.js';
+import { onColor } from '../ui/dom.js';
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
@@ -34,6 +35,7 @@ export function createLabels({ container, scene, camera, world }) {
     span.className = 'label-in';
     span.textContent = o.name;
     span.style.setProperty('--c', o.color);
+    span.style.setProperty('--on', onColor(o.color));
     el.appendChild(span);
     const obj = new CSS2DObject(el);
     const bubble = new THREE.Vector3(...o.label);
@@ -46,7 +48,7 @@ export function createLabels({ container, scene, camera, world }) {
     line.setAttribute('stroke', o.color);
     dot.setAttribute('fill', o.color);
     svg.append(line, dot);
-    const it = { id: o.id, el, span, obj, bubble, anchor: world.focus[o.id].clone(), line, dot, w: 0, h: 22, rank: order.indexOf(o.id), shown: false, dx: 0, dy: 0 };
+    const it = { id: o.id, el, span, obj, bubble, anchor: world.focus[o.id].clone(), line, dot, w: 0, h: 22, rank: order.indexOf(o.id), shown: false, dx: 0, dy: 0, sel: false, pdx: -999, pdy: -999, pax: -999, pay: -999, pfx: -999, pfy: -999 };
     items.push(it);
     byId.set(o.id, it);
   }
@@ -157,14 +159,22 @@ export function createLabels({ container, scene, camera, world }) {
       it.line.style.display = '';
       it.dot.style.display = '';
     }
-    it.span.style.transform = `translate(${it.dx.toFixed(1)}px, ${it.dy.toFixed(1)}px)`;
-    it.span.classList.toggle('sel', it.id === selectedId);
-    it.line.setAttribute('x1', ax.toFixed(1));
-    it.line.setAttribute('y1', ay.toFixed(1));
-    it.line.setAttribute('x2', fx.toFixed(1));
-    it.line.setAttribute('y2', fy.toFixed(1));
-    it.dot.setAttribute('cx', ax.toFixed(1));
-    it.dot.setAttribute('cy', ay.toFixed(1));
+    // chỉ ghi DOM khi vị trí đổi hơn nửa điểm ảnh (tránh cấp phát chuỗi mỗi khung hình)
+    const sel = it.id === selectedId;
+    if (sel !== it.sel) { it.sel = sel; it.span.classList.toggle('sel', sel); }
+    if (Math.abs(it.dx - it.pdx) > 0.5 || Math.abs(it.dy - it.pdy) > 0.5) {
+      it.pdx = it.dx; it.pdy = it.dy;
+      it.span.style.transform = `translate(${it.dx.toFixed(1)}px, ${it.dy.toFixed(1)}px)`;
+    }
+    if (Math.abs(ax - it.pax) > 0.5 || Math.abs(ay - it.pay) > 0.5 || Math.abs(fx - it.pfx) > 0.5 || Math.abs(fy - it.pfy) > 0.5) {
+      it.pax = ax; it.pay = ay; it.pfx = fx; it.pfy = fy;
+      it.line.setAttribute('x1', ax.toFixed(1));
+      it.line.setAttribute('y1', ay.toFixed(1));
+      it.line.setAttribute('x2', fx.toFixed(1));
+      it.line.setAttribute('y2', fy.toFixed(1));
+      it.dot.setAttribute('cx', ax.toFixed(1));
+      it.dot.setAttribute('cy', ay.toFixed(1));
+    }
   }
   function hide(it) {
     it.shown = false;

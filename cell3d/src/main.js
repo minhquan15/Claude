@@ -24,7 +24,7 @@ $('#gl').setAttribute('aria-label', UI.canvasLabel);
 // --- WebGL có chạy được không? ---
 function makeRenderer(canvas) {
   try {
-    const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    const r = new THREE.WebGLRenderer({ canvas, antialias: (window.devicePixelRatio || 1) < 2, alpha: true, powerPreference: 'high-performance' });
     if (!r.getContext()) throw new Error('no context');
     return r;
   } catch (e) {
@@ -71,7 +71,7 @@ async function start() {
   // --- tương tác ---
   const rig = createCameraRig(canvas, { reduced });
   rig.camera.userData.target = rig.controls.target;
-  const clipping = createClipping(renderer);
+  const clipping = createClipping(renderer, scene);
   const highlight = createHighlight(world);
   const labels = createLabels({ container: stage, scene, camera: rig.camera, world });
   const selection = createSelection({ world, highlight, cameraRig: rig, labels });
@@ -197,6 +197,13 @@ async function start() {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { renderer.setAnimationLoop(null); running = false; }
     else { lastT = performance.now(); renderer.setAnimationLoop(loop); running = true; }
+  });
+
+  window.addEventListener('pagehide', () => {
+    renderer.setAnimationLoop(null);
+    world.dispose();
+    envTex.dispose();
+    renderer.dispose();
   });
 
   // --- API cho kiểm thử / gỡ lỗi ---

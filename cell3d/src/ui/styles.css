@@ -37,7 +37,7 @@ button, input { font: inherit; color: inherit; }
 .labels-lines line { stroke-width: 1.2; stroke-opacity: 0.85; }
 .label { pointer-events: none; font-size: 11.5px; font-weight: 600; }
 .label-in { display: inline-block; white-space: nowrap; padding: 2px 7px; border-radius: 999px; background: rgba(8, 15, 32, 0.88); color: #fff; border: 1.5px solid var(--c); box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45); }
-.label-in.sel { background: var(--c); color: #0b1426; }
+.label-in.sel { background: var(--c); color: var(--on, #0b1426); }
 
 /* ---------- Thanh công cụ ---------- */
 .toolbar { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; z-index: 5; }
@@ -93,7 +93,7 @@ button, input { font: inherit; color: inherit; }
 .card { border-left: 5px solid var(--c); padding: 2px 0 2px 12px; }
 .card h2 { margin: 0; font-size: 19px; line-height: 1.25; }
 .card .en { margin: 0 0 8px; color: var(--muted); font-size: 13px; font-style: italic; }
-.card h3 { margin: 12px 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--c); }
+.card h3 { margin: 12px 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ct, var(--c)); }
 .card p { margin: 0; font-size: 14px; line-height: 1.55; }
 .card .fact { color: #fff1c4; }
 .card .size { font-weight: 600; }

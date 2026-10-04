@@ -13,7 +13,7 @@ export const ORGANELLES = [
     en: 'Plasma membrane',
     color: '#f7a8c4',
     function:
-      'Là lớp màng kép phospholipid có gắn protein, bao quanh tế bào. Màng có tính bán thấm: kiểm soát chất đi vào – đi ra, nhận tín hiệu từ môi trường và giúp tế bào nhận biết nhau. Ngay dưới màng là lớp vỏ sợi actin giữ hình dạng tế bào.',
+      'Là màng đơn bao quanh tế bào, cấu tạo từ lớp kép phospholipid có xen protein (và cholesterol). Màng có tính bán thấm: kiểm soát chất đi vào – đi ra, nhận tín hiệu từ môi trường và giúp tế bào nhận biết nhau. Ngay dưới màng là lớp vỏ sợi actin giữ hình dạng tế bào.',
     fact: 'Màng không phải một bức tường cứng: các phân tử phospholipid trôi trượt liên tục như chất lỏng, nên mô hình của màng gọi là "khảm động".',
     size: 'Dày khoảng 7–10 nm; cả tế bào thường rộng 10–30 µm',
     position: [0.6, 0.6, 8.6],
@@ -41,14 +41,14 @@ export const ORGANELLES = [
     function:
       'Chứa phần lớn vật chất di truyền (DNA) và điều khiển mọi hoạt động của tế bào. Nhân được bao bởi màng kép; trên màng có nhiều lỗ nhân cho phép RNA, protein ra vào. DNA liên kết với protein tạo thành chất nhiễm sắc.',
     fact: 'Nếu duỗi thẳng, DNA trong một nhân tế bào người dài khoảng 2 mét, vậy mà được cuộn gọn trong nhân chỉ rộng vài micromet.',
-    size: 'Đường kính khoảng 5–10 µm; lỗ nhân rộng khoảng 100 nm',
+    size: 'Đường kính khoảng 5–10 µm; phức hệ lỗ nhân rộng khoảng 100–120 nm',
     position: [-1.6, 0.2, 0],
     cam: { dir: [0.1, 0.25, 1], dist: 12 },
     label: [-2.8, 2.4, 3.3],
   },
   {
     id: 'nucleolus',
-    name: 'Hạch nhân',
+    name: 'Hạch nhân (nhân con)',
     en: 'Nucleolus',
     color: '#4f46e5',
     function:
@@ -107,9 +107,9 @@ export const ORGANELLES = [
       'Chồng túi dẹt xếp song song. Mặt cis hướng về lưới nội chất để nhận sản phẩm, mặt trans hướng ra phía màng để chuyển đi. Golgi sửa đổi (gắn đường, cắt gọt), phân loại và đóng gói protein, lipid vào túi tiết hoặc lysosome.',
     fact: 'Tên bộ máy được đặt theo nhà khoa học Camillo Golgi, người nhìn thấy cấu trúc này lần đầu năm 1898 nhờ nhuộm bạc.',
     size: 'Chồng 4–8 túi, mỗi túi rộng khoảng 1–3 µm',
-    position: [4.6, 0.9, 1.6],
+    position: [4.2, 1.3, 1.5],
     cam: { dir: [0.25, 0.35, 1], dist: 6.5 },
-    label: [4.8, 3.0, 3.0],
+    label: [4.6, 3.0, 3.0],
   },
   {
     id: 'vesicle',
@@ -144,7 +144,7 @@ export const ORGANELLES = [
     color: '#22c55e',
     function:
       'Túi một lớp màng chứa nhiều enzyme thủy phân trong môi trường axit. Lysosome tiêu hóa thức ăn đưa vào tế bào, phân giải bào quan già hoặc hỏng và tiêu diệt vi khuẩn bị bắt giữ.',
-    fact: 'Bên trong lysosome có độ pH khoảng 4,5–5, đủ axit để enzyme làm việc, còn ngoài tế bào chất pH gần trung tính nên enzyme rò ra cũng ít gây hại.',
+    fact: 'Bên trong lysosome có độ pH khoảng 4,5–5, đủ axit để enzyme làm việc. Bào tương có pH gần trung tính (khoảng 7,2) nên enzyme lỡ rò ra cũng hoạt động kém, ít gây hại.',
     size: 'Đường kính khoảng 0,1–1 µm',
     position: [6.2, -1.8, 3.4],
     cam: { dir: [0.3, 0.1, 1], dist: 3.2 },
@@ -169,12 +169,12 @@ export const ORGANELLES = [
     en: 'Centrosome',
     color: '#e879f9',
     function:
-      'Gồm hai trung tử đặt vuông góc nhau, mỗi trung tử là 9 bộ ba vi ống xếp thành vòng. Trung thể là trung tâm tổ chức vi ống và tham gia hình thành thoi phân bào khi tế bào phân chia.',
+      'Gồm hai trung tử đặt vuông góc nhau (mỗi trung tử gồm 9 bộ ba vi ống xếp thành vòng) và lớp chất quanh trung tử bao quanh chúng. Trung thể là trung tâm tổ chức vi ống, nơi vi ống bắt đầu mọc ra, và tham gia hình thành thoi phân bào khi tế bào phân chia.',
     fact: 'Trung thể nhân đôi một lần trước mỗi lần phân bào, để hai cực của thoi phân bào mỗi cực có một trung thể.',
     size: 'Mỗi trung tử dài khoảng 0,4–0,5 µm, rộng khoảng 0,2 µm',
-    position: [1.2, 3.6, 1.2],
+    position: [1.8, 3.5, 1.2],
     cam: { dir: [0.25, 0.5, 1], dist: 3.5 },
-    label: [1.4, 5.4, 2.6],
+    label: [1.8, 5.4, 2.6],
   },
   {
     id: 'cytoskeleton',
@@ -182,7 +182,7 @@ export const ORGANELLES = [
     en: 'Cytoskeleton',
     color: '#60a5fa',
     function:
-      'Mạng sợi protein giữ hình dạng tế bào, neo giữ bào quan và làm "đường ray" vận chuyển. Gồm vi ống (xanh dương, tỏa ra từ trung thể), sợi trung gian (cam, giữ chắc nhân) và vi sợi actin (đỏ, tạo vỏ dưới màng).',
+      'Mạng sợi protein giữ hình dạng tế bào, neo giữ bào quan và làm "đường ray" vận chuyển. Gồm vi ống (xanh dương, tỏa ra từ trung thể), sợi trung gian (cam, chịu lực kéo, giúp tế bào và nhân vững chắc) và vi sợi actin (đỏ, tạo vỏ dưới màng).',
     fact: 'Các protein động cơ như kinesin "đi bộ" dọc vi ống, kéo túi vận chuyển với tốc độ khoảng 1 µm mỗi giây.',
     size: 'Vi ống rộng ~25 nm; sợi trung gian ~10 nm; vi sợi actin ~7 nm',
     position: [4.4, 4.6, 3.6],

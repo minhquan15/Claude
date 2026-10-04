@@ -95,7 +95,7 @@ export function createBars({ container, tour, pathway }) {
   });
 
   return {
-    tickTour() { prog.style.transform = `scaleX(${tour.progress().toFixed(3)})`; },
+    tickTour() { if (!tourBar.hidden) prog.style.transform = `scaleX(${tour.progress().toFixed(3)})`; },
     isTourBarVisible: () => !tourBar.hidden,
   };
 }

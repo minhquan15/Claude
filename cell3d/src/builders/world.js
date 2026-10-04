@@ -96,6 +96,17 @@ export async function buildWorld(onProgress = () => {}) {
       shared.uMotion.value = motion;
       mems.mito.userData.update(t, motion);
     },
+    // giải phóng geometry / material khi không dùng nữa
+    dispose() {
+      const seen = new Set();
+      root.traverse((o) => {
+        if (o.geometry && !seen.has(o.geometry)) { seen.add(o.geometry); o.geometry.dispose(); }
+        const m = o.material;
+        if (m) (Array.isArray(m) ? m : [m]).forEach((x) => { if (!seen.has(x)) { seen.add(x); x.dispose(); } });
+        if (o.isInstancedMesh) o.dispose();
+      });
+      root.clear();
+    },
     stats: {
       pores: ctx.poreCount,
       mitochondria: ctx.mitoCount,

@@ -7,6 +7,7 @@
   <meta name="description" content="Mô hình tế bào động vật nhân thực 3D tương tác, dành cho học sinh THPT.">
   <title>Tế bào động vật 3D</title>
   <link rel="stylesheet" href="src/ui/styles.css">
+  <link rel="preload" href="vendor/fonts/be-vietnam-pro-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="vendor/fonts/be-vietnam-pro-vietnamese-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <script type="importmap">
   {
@@ -35,5 +36,15 @@
   </div>
 
   <script type="module" src="src/main.js"></script>
+  <script>
+    // Mở trực tiếp bằng file:// thì trình duyệt chặn ES module: nhắc người dùng chạy máy chủ tĩnh.
+    if (location.protocol === 'file:') {
+      setTimeout(function () {
+        if (document.documentElement.dataset.ready === 'true') return;
+        var t = document.querySelector('.loader-text');
+        if (t) t.textContent = 'Trình duyệt chặn nạp module khi mở bằng file://. Hãy chạy máy chủ tĩnh: python3 -m http.server (xem README.md).';
+      }, 1500);
+    }
+  </script>
 </body>
 </html>
