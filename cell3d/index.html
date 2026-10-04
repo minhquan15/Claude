@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1426">
+  <meta name="description" content="Mô hình tế bào động vật nhân thực 3D tương tác, dành cho học sinh THPT.">
+  <title>Tế bào động vật 3D</title>
+  <link rel="stylesheet" href="src/ui/styles.css">
+  <link rel="preload" href="vendor/fonts/be-vietnam-pro-vietnamese-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/build/three.module.js",
+      "three/addons/": "./vendor/three/addons/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <main id="stage">
+      <canvas id="gl" tabindex="0" role="img"></canvas>
+    </main>
+    <aside id="panel" data-open="false"></aside>
+  </div>
+
+  <div id="loader" role="status" aria-live="polite">
+    <div class="loader-inner">
+      <div class="loader-cell" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="loader-text">Đang tải mô hình…</p>
+      <div class="loader-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+      <noscript><p>Trang này cần JavaScript và WebGL để hiển thị mô hình 3D.</p></noscript>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
