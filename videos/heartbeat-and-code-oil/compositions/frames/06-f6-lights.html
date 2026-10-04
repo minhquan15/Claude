@@ -72,6 +72,16 @@
           float ecg(float ph){
             return .10*glow(ph-.16,.035) - .14*glow(ph-.33,.012) + 1.0*glow(ph-.37,.013) - .30*glow(ph-.41,.013) + .20*glow(ph-.60,.05);
           }
+          // distance to the ECG trace, sampled along the curve so the spikes keep a constant stroke width
+          float ecgDist(vec2 q, float amp, float off){
+            float dmin = 1e3;
+            for(int k=-8;k<=8;k++){
+              float x = q.x + float(k)*.0018;
+              vec2 c = vec2(x, ecg(fract((x+.95)/.47))*amp + off);
+              dmin = min(dmin, length(q - c));
+            }
+            return dmin;
+          }
           vec3 skyGrad(float y, vec3 top, vec3 mid, vec3 bot, float hz){
             float k = clamp((y-hz)/(0.55-hz), 0., 1.);
             return k<.5 ? mix(bot, mid, k*2.) : mix(mid, top, k*2.-1.);
@@ -84,8 +94,7 @@
             vec3 col = mix(vec3(.055,.04,.035), vec3(.15,.10,.075), fbm(q*3.+3.));
             float rev = mix(-1., 1., smoothstep(.04,.82,uP));
             float amp = .2*(1.+.5*uPulse);
-            float y = ecg(fract((q.x+.95)/.47))*amp - .04;
-            float d = abs(q.y - y);
+            float d = ecgDist(q, amp, -.04);
             float on = step(q.x, rev);
             col += vec3(1.,.42,.28)*on*(glow(d,.007)*1.3 + glow(d,.035)*.35);
             float hy = ecg(fract((rev+.95)/.47))*amp - .04;
@@ -353,17 +362,16 @@
           
           // 9 · outro: the sun sets, the heartbeat line returns and slows
           vec3 s9(vec2 q){
-            float hz = -.12;
+            float hz = -.27;
             float d = smoothstep(0.,1.,uP);
             vec3 col = skyGrad(q.y, mix(vec3(.25,.2,.35), vec3(.05,.04,.06), d), mix(vec3(.9,.45,.3), vec3(.15,.07,.06), d), mix(vec3(1.,.65,.3), vec3(.25,.1,.05), d), hz);
-            vec2 sp = vec2(0., mix(-.06,-.2,d));
+            vec2 sp = vec2(0., mix(-.2,-.34,d));
             float sd = length(q-sp);
             col += vec3(1.,.55,.25)*glow(sd,.25)*(1.-d)*.6;
             col = mix(col, vec3(1.,.8,.5), smoothstep(.1,.09,sd)*(1.-d)*step(hz,q.y));
             if(q.y < hz) col = mix(vec3(.12,.06,.05), vec3(.03,.02,.02), d) + .04*fbm(q*6.);
             float amp = .16*(1.-d*.6)*(1.+.5*uPulse);
-            float y = ecg(fract((q.x+.95)/.47))*amp - .17;
-            float dl = abs(q.y - y);
+            float dl = ecgDist(q, amp, -.17);
             col += vec3(1.,.45,.3)*smoothstep(.0,.25,uP)*(glow(dl,.006)*1.1 + glow(dl,.03)*.3);
             return col;
           }
