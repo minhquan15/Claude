@@ -3,3 +3,5 @@ renders/render.log
 renders/sheet/
 node_modules/
 .hyperframes/
+renders/work-*/
+renders/.*hf-transaction*/
