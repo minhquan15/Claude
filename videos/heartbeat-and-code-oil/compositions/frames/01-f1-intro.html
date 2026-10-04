@@ -17,13 +17,14 @@
           font-family: "EB Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 58px; line-height: 1.15;
           letter-spacing: -0.005em; text-align: center; color: #FAF9F5; opacity: 0;
           text-shadow: 0 2px 6px rgba(20,20,19,0.85), 0 0 28px rgba(20,20,19,0.6); }
+        #s01-captions .w { opacity: 0.5; }
         #s01-card { position: absolute; left: 0; right: 0; top: 0; height: 64%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
         #s01-card .title { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -0.022em;
           color: #FAF9F5; opacity: 0; text-shadow: 0 3px 10px rgba(20,20,19,0.8), 0 0 40px rgba(20,20,19,0.5); }
         #s01-card .sub { margin: 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 52px; color: #ECE3D4; opacity: 0;
           text-shadow: 0 2px 8px rgba(20,20,19,0.85); }
       </style>
-      <div id="root" data-composition-id="01-f1-intro" data-width="1920" data-height="1080" data-duration="10.147">
+      <div id="root" data-composition-id="01-f1-intro" data-width="1920" data-height="1080" data-duration="13.39">
         <canvas id="s01-cv" width="1280" height="720"></canvas>
         <div id="s01-shade"></div>
         <div class="card" id="s01-card"><h1 class="title" id="s01-title">Heartbeat and Code</h1><p class="sub" id="s01-sub">an oil-painted music video</p></div>
@@ -564,7 +565,7 @@
             return { render };
           }
           
-          const CFG = {"start":0,"dur":10.147,"scene":0,"prev":null,"prevDur":0,"trans":1.8,"beat0":10.147,"spb":0.631623,"fadeIn":[0,2.2],"fadeOut":null,"hits":[]};
+          const CFG = {"start":0,"dur":13.39,"scene":0,"prev":null,"prevDur":0,"trans":1.8,"beat0":13.886,"spb":0.622592,"fadeIn":[0,2.2],"fadeOut":null,"hits":[]};
           const painter = makePainter(document.getElementById("s01-cv"), CFG);
           const tl = gsap.timeline({ paused: true });
           const clock = { t: 0 };
@@ -572,7 +573,7 @@
 
       tl.fromTo("#s01-title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.6, ease: "power2.out" }, 1.6);
       tl.fromTo("#s01-sub", { opacity: 0 }, { opacity: 1, duration: 1.2, ease: "power1.out" }, 3.0);
-      tl.to("#s01-card", { opacity: 0, duration: 0.9, ease: "power1.in" }, 9.047);
+      tl.to("#s01-card", { opacity: 0, duration: 0.9, ease: "power1.in" }, 12.29);
           painter.render(0);
           window.__timelines["01-f1-intro"] = tl;
           tl.seek(0);

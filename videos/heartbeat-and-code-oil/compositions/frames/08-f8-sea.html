@@ -17,21 +17,22 @@
           font-family: "EB Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 58px; line-height: 1.15;
           letter-spacing: -0.005em; text-align: center; color: #FAF9F5; opacity: 0;
           text-shadow: 0 2px 6px rgba(20,20,19,0.85), 0 0 28px rgba(20,20,19,0.6); }
+        #s08-captions .w { opacity: 0.5; }
         #s08-card { position: absolute; left: 0; right: 0; top: 0; height: 64%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
         #s08-card .title { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -0.022em;
           color: #FAF9F5; opacity: 0; text-shadow: 0 3px 10px rgba(20,20,19,0.8), 0 0 40px rgba(20,20,19,0.5); }
         #s08-card .sub { margin: 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 52px; color: #ECE3D4; opacity: 0;
           text-shadow: 0 2px 8px rgba(20,20,19,0.85); }
       </style>
-      <div id="root" data-composition-id="08-f8-sea" data-width="1920" data-height="1080" data-duration="20.225">
+      <div id="root" data-composition-id="08-f8-sea" data-width="1920" data-height="1080" data-duration="26.564">
         <canvas id="s08-cv" width="1280" height="720"></canvas>
         <div id="s08-shade"></div>
 
         <div id="s08-captions">
-        <p class="lyric" id="s08-l0">If one day the world runs faster than our dreams</p>
-        <p class="lyric" id="s08-l1">Who will guard our conscience when the lines blur in between?</p>
-        <p class="lyric" id="s08-l2">The answer's always here, held in human hands</p>
-        <p class="lyric" id="s08-l3">Technology's the lantern, but we choose where we stand</p>
+        <p class="lyric" id="s08-l0"><span class="w" id="s08-l0w0">If</span> <span class="w" id="s08-l0w1">one</span> <span class="w" id="s08-l0w2">day</span> <span class="w" id="s08-l0w3">the</span> <span class="w" id="s08-l0w4">world</span> <span class="w" id="s08-l0w5">runs</span> <span class="w" id="s08-l0w6">faster</span> <span class="w" id="s08-l0w7">than</span> <span class="w" id="s08-l0w8">our</span> <span class="w" id="s08-l0w9">dreams</span></p>
+        <p class="lyric" id="s08-l1"><span class="w" id="s08-l1w0">Who</span> <span class="w" id="s08-l1w1">will</span> <span class="w" id="s08-l1w2">guard</span> <span class="w" id="s08-l1w3">our</span> <span class="w" id="s08-l1w4">conscience</span> <span class="w" id="s08-l1w5">when</span> <span class="w" id="s08-l1w6">the</span> <span class="w" id="s08-l1w7">lines</span> <span class="w" id="s08-l1w8">blur</span> <span class="w" id="s08-l1w9">in</span> <span class="w" id="s08-l1w10">between?</span></p>
+        <p class="lyric" id="s08-l2"><span class="w" id="s08-l2w0">The</span> <span class="w" id="s08-l2w1">answer's</span> <span class="w" id="s08-l2w2">always</span> <span class="w" id="s08-l2w3">here,</span> <span class="w" id="s08-l2w4">held</span> <span class="w" id="s08-l2w5">in</span> <span class="w" id="s08-l2w6">human</span> <span class="w" id="s08-l2w7">hands</span></p>
+        <p class="lyric" id="s08-l3"><span class="w" id="s08-l3w0">Technology's</span> <span class="w" id="s08-l3w1">the</span> <span class="w" id="s08-l3w2">lantern,</span> <span class="w" id="s08-l3w3">but</span> <span class="w" id="s08-l3w4">we</span> <span class="w" id="s08-l3w5">choose</span> <span class="w" id="s08-l3w6">where</span> <span class="w" id="s08-l3w7">we</span> <span class="w" id="s08-l3w8">stand</span></p>
         </div>
       </div>
       <script>
@@ -567,19 +568,57 @@
             return { render };
           }
           
-          const CFG = {"start":111.2,"dur":20.225,"scene":7,"prev":6,"prevDur":20.201,"trans":1.8,"beat0":10.147,"spb":0.631623,"fadeIn":null,"fadeOut":null,"hits":[[109.877,0.34],[122.508,0.28],[123.786,0.39],[124.691,0.28],[126.317,0.28],[128.824,0.41],[131.379,0.88]]};
+          const CFG = {"start":121.719,"dur":26.564,"scene":7,"prev":6,"prevDur":22.988,"trans":1.8,"beat0":13.886,"spb":0.622592,"fadeIn":null,"fadeOut":null,"hits":[[123.066,0.26],[123.182,0.46],[123.321,0.34],[123.53,0.35],[125.248,0.4],[126.015,0.4],[127.269,0.34],[128.801,0.34],[131.053,0.35],[132.214,0.45],[135.001,0.35],[135.163,0.36],[136.858,0.3],[137.021,0.35],[137.183,0.49],[137.648,0.28],[139.343,0.34],[139.645,0.39],[140.574,0.38]]};
           const painter = makePainter(document.getElementById("s08-cv"), CFG);
           const tl = gsap.timeline({ paused: true });
           const clock = { t: 0 };
           tl.to(clock, { t: CFG.dur, duration: CFG.dur, ease: "none", onUpdate: () => painter.render(clock.t) }, 0);
-      tl.fromTo("#s08-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 0.15);
-      tl.to("#s08-l0", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 4.139);
-      tl.fromTo("#s08-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 5.139);
-      tl.to("#s08-l1", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 9.201);
-      tl.fromTo("#s08-l2", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 10.201);
-      tl.to("#s08-l2", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 14.263);
-      tl.fromTo("#s08-l3", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 15.263);
-      tl.to("#s08-l3", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 19.325);
+      tl.fromTo("#s08-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 2.101);
+      tl.to("#s08-l0", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 6.011);
+      tl.fromTo("#s08-l0w0", { opacity: 0.5 }, { opacity: 1, duration: 0.17, ease: "power1.out" }, 2.551);
+      tl.fromTo("#s08-l0w1", { opacity: 0.5 }, { opacity: 1, duration: 0.26, ease: "power1.out" }, 2.721);
+      tl.fromTo("#s08-l0w2", { opacity: 0.5 }, { opacity: 1, duration: 0.24, ease: "power1.out" }, 3.001);
+      tl.fromTo("#s08-l0w3", { opacity: 0.5 }, { opacity: 1, duration: 0.26, ease: "power1.out" }, 3.241);
+      tl.fromTo("#s08-l0w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.501);
+      tl.fromTo("#s08-l0w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.941);
+      tl.fromTo("#s08-l0w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 4.291);
+      tl.fromTo("#s08-l0w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 4.821);
+      tl.fromTo("#s08-l0w8", { opacity: 0.5 }, { opacity: 1, duration: 0.26, ease: "power1.out" }, 5.171);
+      tl.fromTo("#s08-l0w9", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 5.431);
+      tl.fromTo("#s08-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 6.131);
+      tl.to("#s08-l1", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 11.091);
+      tl.fromTo("#s08-l1w0", { opacity: 0.5 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 6.581);
+      tl.fromTo("#s08-l1w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 6.831);
+      tl.fromTo("#s08-l1w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.161);
+      tl.fromTo("#s08-l1w3", { opacity: 0.5 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 7.581);
+      tl.fromTo("#s08-l1w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.831);
+      tl.fromTo("#s08-l1w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.671);
+      tl.fromTo("#s08-l1w6", { opacity: 0.5 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 9.001);
+      tl.fromTo("#s08-l1w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 9.251);
+      tl.fromTo("#s08-l1w8", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 9.671);
+      tl.fromTo("#s08-l1w9", { opacity: 0.5 }, { opacity: 1, duration: 0.16, ease: "power1.out" }, 10.001);
+      tl.fromTo("#s08-l1w10", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 10.161);
+      tl.fromTo("#s08-l2", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 11.211);
+      tl.to("#s08-l2", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 16.281);
+      tl.fromTo("#s08-l2w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 11.661);
+      tl.fromTo("#s08-l2w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 12.051);
+      tl.fromTo("#s08-l2w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 12.841);
+      tl.fromTo("#s08-l2w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 13.491);
+      tl.fromTo("#s08-l2w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 14.131);
+      tl.fromTo("#s08-l2w5", { opacity: 0.5 }, { opacity: 1, duration: 0.22, ease: "power1.out" }, 14.561);
+      tl.fromTo("#s08-l2w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 14.781);
+      tl.fromTo("#s08-l2w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 15.321);
+      tl.fromTo("#s08-l3", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 16.401);
+      tl.to("#s08-l3", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 26.064);
+      tl.fromTo("#s08-l3w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 16.851);
+      tl.fromTo("#s08-l3w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 19.141);
+      tl.fromTo("#s08-l3w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 19.711);
+      tl.fromTo("#s08-l3w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 21.431);
+      tl.fromTo("#s08-l3w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 22.001);
+      tl.fromTo("#s08-l3w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 22.381);
+      tl.fromTo("#s08-l3w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 23.531);
+      tl.fromTo("#s08-l3w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 24.491);
+      tl.fromTo("#s08-l3w8", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 24.871);
 
           painter.render(0);
           window.__timelines["08-f8-sea"] = tl;

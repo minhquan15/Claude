@@ -1,6 +1,6 @@
 ---
 compositionId: bgm
-duration_s: 165.46
+duration_s: 207.92
 canvas: { w: 1920, h: 1080, fps: 30 }
 style:
   font: "EB Garamond / Inter / JetBrains Mono"
@@ -15,16 +15,16 @@ avoid: ["photographic or AI-generated imagery", "fast hard cuts on a ballad", "b
 ## Frame 1 — 01-f1-intro
 
 - src: compositions/frames/01-f1-intro.html
-- duration: 10.147s
-- span_sec: [0, 10.147]
+- duration: 13.39s
+- span_sec: [0, 13.39]
 - pacing: phrase_flow
 - mood: [intimate]
-- feel: sparse warm pad and soft percussion before the beat enters
+- feel: soft piano and warm pad before the first vocal
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [0, 10.147]
+  - span_sec: [0, 13.39]
   - free_design: { dominant_system: "procedural oil painting (Intro: a heartbeat traced on dark canvas)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
   - anchors: [0]
   - copy: ["Heartbeat and Code","an oil-painted music video"]
@@ -32,152 +32,152 @@ avoid: ["photographic or AI-generated imagery", "fast hard cuts on a ballad", "b
 ## Frame 2 — 02-f2-city
 
 - src: compositions/frames/02-f2-city.html
-- duration: 20.201s
-- span_sec: [10.147, 30.348]
+- duration: 19.28s
+- span_sec: [13.39, 32.67]
 - pacing: phrase_flow
 - mood: [warm]
-- feel: low-energy verse, steady light beat, phrase-shaped
+- feel: verse 1, male vocal, light beat
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [10.147, 30.348]
+  - span_sec: [13.39, 32.67]
   - free_design: { dominant_system: "procedural oil painting (Verse 1: a city glowing in a brand new hue)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [10.297, 15.286, 20.348, 25.41]
-  - copy: ["Woke up to a city glowing in a brand new hue","Every street already knows where I'm headed to","A gentle voice asks me, hey, are you doing alright?","Not a human, but it feels like warmth inside"]
+  - anchors: [13.54, 18, 22.78, 28.02]
+  - copy: ["Woke up to a city glowing in a brand new hue","Every street already knows where I'm headed to","A gentle voice asks me, hey, are you doing all right?","Not a human, but it feels like warmth inside"]
 
 ## Frame 3 — 03-f3-storm
 
 - src: compositions/frames/03-f3-storm.html
-- duration: 10.124s
-- span_sec: [30.348, 40.472]
+- duration: 11.239s
+- span_sec: [32.67, 43.909]
 - pacing: phrase_flow
 - mood: [rising]
-- feel: pre-chorus lift with a surge at 33s and a hi-hat fill into the chorus
+- feel: pre-chorus build, male vocal
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [30.348, 40.472]
+  - span_sec: [32.67, 43.909]
   - free_design: { dominant_system: "procedural oil painting (Pre-chorus 1: storm clouds part around two lights)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [30.498, 35.51]
+  - anchors: [32.82, 37.73]
   - copy: ["We were afraid the day would come when we'd be replaced","But all we really needed was to learn to share the space"]
 
 ## Frame 4 — 04-f4-road
 
 - src: compositions/frames/04-f4-road.html
-- duration: 20.202s
-- span_sec: [40.472, 60.674]
+- duration: 23.081s
+- span_sec: [43.909, 66.99]
 - pacing: phrase_flow
 - mood: [uplifting]
-- feel: full chorus, high energy, kick on the downbeats
+- feel: first chorus, duet, full beat
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [40.472, 60.674]
+  - span_sec: [43.909, 66.99]
   - free_design: { dominant_system: "procedural oil painting (Chorus 1: side by side down this road)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [40.622, 45.611, 50.673, 55.712]
+  - anchors: [44.059, 48.58, 53.31, 58.44]
   - copy: ["Heartbeat and code, together we write tomorrow","One brings the knowledge, one brings the dreams we follow","No one above, no one below, side by side down this road","Tomorrow shines brighter when no one walks alone"]
 
 ## Frame 5 — 05-f5-stars
 
 - src: compositions/frames/05-f5-stars.html
-- duration: 20.201s
-- span_sec: [60.674, 80.875]
+- duration: 21.176s
+- span_sec: [66.99, 88.166]
 - pacing: phrase_flow
 - mood: [dreamy]
-- feel: energy drops at 62s; quiet verse, dense soft hits
+- feel: instrumental turn, then verse 2 on the female vocal
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [60.674, 80.875]
+  - span_sec: [66.99, 88.166]
   - free_design: { dominant_system: "procedural oil painting (Verse 2: born from a thousand glowing lights)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [60.824, 65.812, 70.874, 75.936]
+  - anchors: [68.54, 72.85, 77.61, 82.86]
   - copy: ["I was born from numbers and a thousand glowing lights","Learned your laughter and your sorrow through the words you write","I don't have a heartbeat, but I've learned to truly hear","So the things that matter never disappear"]
 
 ## Frame 6 — 06-f6-lights
 
 - src: compositions/frames/06-f6-lights.html
-- duration: 10.124s
-- span_sec: [80.875, 90.999]
+- duration: 10.565s
+- span_sec: [88.166, 98.731]
 - pacing: phrase_flow
 - mood: [tender]
-- feel: medium pre-chorus build with a sustained hi-hat fill at 88s
+- feel: pre-chorus 2 build, female vocal
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [80.875, 90.999]
+  - span_sec: [88.166, 98.731]
   - free_design: { dominant_system: "procedural oil painting (Pre-chorus 2: a warm light and a cool light meet)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [81.025, 86.037]
+  - anchors: [88.34, 93.2]
   - copy: ["You showed me what it means to care","I'll help you reach the places you have never dared"]
 
 ## Frame 7 — 07-f7-sunflowers
 
 - src: compositions/frames/07-f7-sunflowers.html
-- duration: 20.201s
-- span_sec: [90.999, 111.2]
+- duration: 22.988s
+- span_sec: [98.731, 121.719]
 - pacing: phrase_flow
 - mood: [joyful]
-- feel: second chorus, the loudest stretch yet (peak 0.83 at 96s)
+- feel: second chorus, duet
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [90.999, 111.2]
+  - span_sec: [98.731, 121.719]
   - free_design: { dominant_system: "procedural oil painting (Chorus 2: a sunflower field under a swirling sky)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [91.149, 96.138, 101.2, 106.238]
+  - anchors: [98.881, 103.4, 108.11, 113.2]
   - copy: ["Heartbeat and code, together we write tomorrow","One brings the knowledge, one brings the dreams we follow","No one above, no one below, side by side down this road","Tomorrow shines brighter when no one walks alone"]
 
 ## Frame 8 — 08-f8-sea
 
 - src: compositions/frames/08-f8-sea.html
-- duration: 20.225s
-- span_sec: [111.2, 131.425]
+- duration: 26.564s
+- span_sec: [121.719, 148.283]
 - pacing: phrase_flow
 - mood: [searching]
-- feel: bridge after the 109s surge; medium energy building toward the key change
+- feel: bridge, strings swell, slow build
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [111.2, 131.425]
+  - span_sec: [121.719, 148.283]
   - free_design: { dominant_system: "procedural oil painting (Bridge: a lantern held in human hands)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [111.35, 116.339, 121.401, 126.463]
+  - anchors: [123.82, 127.85, 132.93, 138.12]
   - copy: ["If one day the world runs faster than our dreams","Who will guard our conscience when the lines blur in between?","The answer's always here, held in human hands","Technology's the lantern, but we choose where we stand"]
 
 ## Frame 9 — 09-f9-sunrise
 
 - src: compositions/frames/09-f9-sunrise.html
-- duration: 19.574s
-- span_sec: [131.425, 150.999]
+- duration: 28.514s
+- span_sec: [148.283, 176.797]
 - pacing: phrase_flow
 - mood: [triumphant]
-- feel: final chorus up a whole step, sustained high energy
+- feel: final chorus, key change, full harmonies
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [131.425, 150.999]
+  - span_sec: [148.283, 176.797]
   - free_design: { dominant_system: "procedural oil painting (Final chorus: a great sunrise and a procession of lights)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [131.575, 136.564, 141.626, 146.664]
+  - anchors: [148.433, 152.97, 157.59, 163.17]
   - copy: ["Heartbeat and code, together we write tomorrow","One brings the knowledge, one brings the dreams we follow","No one above, no one below, side by side down this road","Tomorrow shines brighter when no one walks alone"]
 
 ## Frame 10 — 10-f10-outro
 
 - src: compositions/frames/10-f10-outro.html
-- duration: 14.461s
-- span_sec: [150.999, 165.46]
+- duration: 31.123s
+- span_sec: [176.797, 207.92]
 - pacing: phrase_flow
 - mood: [intimate]
-- feel: energy falls away to silence; soft final hits
+- feel: last sung line, then solo piano fading out
 
 ### Groups
 
 - **g1** — free_design
-  - span_sec: [150.999, 165.46]
+  - span_sec: [176.797, 207.92]
   - free_design: { dominant_system: "procedural oil painting (Outro: the sun sets and the heartbeat slows)", primitives: ["bg-flow-field", "blur-resolve"], density_topology: "hold" }
-  - anchors: [151.549, 156.599]
-  - copy: ["Heartbeat and code","Together we write tomorrow","Heartbeat and Code"]
+  - anchors: [176.947]
+  - copy: ["Heartbeat and code, together we write tomorrow","Heartbeat and Code"]

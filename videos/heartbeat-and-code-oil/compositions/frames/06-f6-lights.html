@@ -17,19 +17,20 @@
           font-family: "EB Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 58px; line-height: 1.15;
           letter-spacing: -0.005em; text-align: center; color: #FAF9F5; opacity: 0;
           text-shadow: 0 2px 6px rgba(20,20,19,0.85), 0 0 28px rgba(20,20,19,0.6); }
+        #s06-captions .w { opacity: 0.5; }
         #s06-card { position: absolute; left: 0; right: 0; top: 0; height: 64%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
         #s06-card .title { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -0.022em;
           color: #FAF9F5; opacity: 0; text-shadow: 0 3px 10px rgba(20,20,19,0.8), 0 0 40px rgba(20,20,19,0.5); }
         #s06-card .sub { margin: 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 52px; color: #ECE3D4; opacity: 0;
           text-shadow: 0 2px 8px rgba(20,20,19,0.85); }
       </style>
-      <div id="root" data-composition-id="06-f6-lights" data-width="1920" data-height="1080" data-duration="10.124">
+      <div id="root" data-composition-id="06-f6-lights" data-width="1920" data-height="1080" data-duration="10.565">
         <canvas id="s06-cv" width="1280" height="720"></canvas>
         <div id="s06-shade"></div>
 
         <div id="s06-captions">
-        <p class="lyric" id="s06-l0">You showed me what it means to care</p>
-        <p class="lyric" id="s06-l1">I'll help you reach the places you have never dared</p>
+        <p class="lyric" id="s06-l0"><span class="w" id="s06-l0w0">You</span> <span class="w" id="s06-l0w1">showed</span> <span class="w" id="s06-l0w2">me</span> <span class="w" id="s06-l0w3">what</span> <span class="w" id="s06-l0w4">it</span> <span class="w" id="s06-l0w5">means</span> <span class="w" id="s06-l0w6">to</span> <span class="w" id="s06-l0w7">care</span></p>
+        <p class="lyric" id="s06-l1"><span class="w" id="s06-l1w0">I'll</span> <span class="w" id="s06-l1w1">help</span> <span class="w" id="s06-l1w2">you</span> <span class="w" id="s06-l1w3">reach</span> <span class="w" id="s06-l1w4">the</span> <span class="w" id="s06-l1w5">places</span> <span class="w" id="s06-l1w6">you</span> <span class="w" id="s06-l1w7">have</span> <span class="w" id="s06-l1w8">never</span> <span class="w" id="s06-l1w9">dared</span></p>
         </div>
       </div>
       <script>
@@ -565,15 +566,33 @@
             return { render };
           }
           
-          const CFG = {"start":80.875,"dur":10.124,"scene":5,"prev":4,"prevDur":20.201,"trans":1.8,"beat0":10.147,"spb":0.631623,"fadeIn":null,"fadeOut":null,"hits":[[80.852,0.28],[82.106,0.36],[84.01,0.38],[84.614,0.28],[86.169,0.4],[86.448,0.28],[87.168,0.45],[88.422,0.34]]};
+          const CFG = {"start":88.166,"dur":10.565,"scene":5,"prev":4,"prevDur":21.176,"trans":1.8,"beat0":13.886,"spb":0.622592,"fadeIn":null,"fadeOut":null,"hits":[]};
           const painter = makePainter(document.getElementById("s06-cv"), CFG);
           const tl = gsap.timeline({ paused: true });
           const clock = { t: 0 };
           tl.to(clock, { t: CFG.dur, duration: CFG.dur, ease: "none", onUpdate: () => painter.render(clock.t) }, 0);
-      tl.fromTo("#s06-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 0.15);
-      tl.to("#s06-l0", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 4.162);
-      tl.fromTo("#s06-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 5.162);
-      tl.to("#s06-l1", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 9.224);
+      tl.fromTo("#s06-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.174);
+      tl.to("#s06-l0", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 4.914);
+      tl.fromTo("#s06-l0w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.624);
+      tl.fromTo("#s06-l0w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 1.054);
+      tl.fromTo("#s06-l0w2", { opacity: 0.5 }, { opacity: 1, duration: 0.29, ease: "power1.out" }, 1.924);
+      tl.fromTo("#s06-l0w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 2.214);
+      tl.fromTo("#s06-l0w4", { opacity: 0.5 }, { opacity: 1, duration: 0.29, ease: "power1.out" }, 2.794);
+      tl.fromTo("#s06-l0w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.084);
+      tl.fromTo("#s06-l0w6", { opacity: 0.5 }, { opacity: 1, duration: 0.29, ease: "power1.out" }, 3.804);
+      tl.fromTo("#s06-l0w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 4.094);
+      tl.fromTo("#s06-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 5.034);
+      tl.to("#s06-l1", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 10.065);
+      tl.fromTo("#s06-l1w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 5.484);
+      tl.fromTo("#s06-l1w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 5.924);
+      tl.fromTo("#s06-l1w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 6.364);
+      tl.fromTo("#s06-l1w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 6.694);
+      tl.fromTo("#s06-l1w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.244);
+      tl.fromTo("#s06-l1w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.574);
+      tl.fromTo("#s06-l1w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.234);
+      tl.fromTo("#s06-l1w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.564);
+      tl.fromTo("#s06-l1w8", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 9.004);
+      tl.fromTo("#s06-l1w9", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 9.554);
 
           painter.render(0);
           window.__timelines["06-f6-lights"] = tl;

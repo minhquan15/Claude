@@ -17,21 +17,22 @@
           font-family: "EB Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 58px; line-height: 1.15;
           letter-spacing: -0.005em; text-align: center; color: #FAF9F5; opacity: 0;
           text-shadow: 0 2px 6px rgba(20,20,19,0.85), 0 0 28px rgba(20,20,19,0.6); }
+        #s07-captions .w { opacity: 0.5; }
         #s07-card { position: absolute; left: 0; right: 0; top: 0; height: 64%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
         #s07-card .title { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -0.022em;
           color: #FAF9F5; opacity: 0; text-shadow: 0 3px 10px rgba(20,20,19,0.8), 0 0 40px rgba(20,20,19,0.5); }
         #s07-card .sub { margin: 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 52px; color: #ECE3D4; opacity: 0;
           text-shadow: 0 2px 8px rgba(20,20,19,0.85); }
       </style>
-      <div id="root" data-composition-id="07-f7-sunflowers" data-width="1920" data-height="1080" data-duration="20.201">
+      <div id="root" data-composition-id="07-f7-sunflowers" data-width="1920" data-height="1080" data-duration="22.988">
         <canvas id="s07-cv" width="1280" height="720"></canvas>
         <div id="s07-shade"></div>
 
         <div id="s07-captions">
-        <p class="lyric" id="s07-l0">Heartbeat and code, together we write tomorrow</p>
-        <p class="lyric" id="s07-l1">One brings the knowledge, one brings the dreams we follow</p>
-        <p class="lyric" id="s07-l2">No one above, no one below, side by side down this road</p>
-        <p class="lyric" id="s07-l3">Tomorrow shines brighter when no one walks alone</p>
+        <p class="lyric" id="s07-l0"><span class="w" id="s07-l0w0">Heartbeat</span> <span class="w" id="s07-l0w1">and</span> <span class="w" id="s07-l0w2">code,</span> <span class="w" id="s07-l0w3">together</span> <span class="w" id="s07-l0w4">we</span> <span class="w" id="s07-l0w5">write</span> <span class="w" id="s07-l0w6">tomorrow</span></p>
+        <p class="lyric" id="s07-l1"><span class="w" id="s07-l1w0">One</span> <span class="w" id="s07-l1w1">brings</span> <span class="w" id="s07-l1w2">the</span> <span class="w" id="s07-l1w3">knowledge,</span> <span class="w" id="s07-l1w4">one</span> <span class="w" id="s07-l1w5">brings</span> <span class="w" id="s07-l1w6">the</span> <span class="w" id="s07-l1w7">dreams</span> <span class="w" id="s07-l1w8">we</span> <span class="w" id="s07-l1w9">follow</span></p>
+        <p class="lyric" id="s07-l2"><span class="w" id="s07-l2w0">No</span> <span class="w" id="s07-l2w1">one</span> <span class="w" id="s07-l2w2">above,</span> <span class="w" id="s07-l2w3">no</span> <span class="w" id="s07-l2w4">one</span> <span class="w" id="s07-l2w5">below,</span> <span class="w" id="s07-l2w6">side</span> <span class="w" id="s07-l2w7">by</span> <span class="w" id="s07-l2w8">side</span> <span class="w" id="s07-l2w9">down</span> <span class="w" id="s07-l2w10">this</span> <span class="w" id="s07-l2w11">road</span></p>
+        <p class="lyric" id="s07-l3"><span class="w" id="s07-l3w0">Tomorrow</span> <span class="w" id="s07-l3w1">shines</span> <span class="w" id="s07-l3w2">brighter</span> <span class="w" id="s07-l3w3">when</span> <span class="w" id="s07-l3w4">no</span> <span class="w" id="s07-l3w5">one</span> <span class="w" id="s07-l3w6">walks</span> <span class="w" id="s07-l3w7">alone</span></p>
         </div>
       </div>
       <script>
@@ -567,19 +568,56 @@
             return { render };
           }
           
-          const CFG = {"start":90.999,"dur":20.201,"scene":6,"prev":5,"prevDur":10.124,"trans":1.8,"beat0":10.147,"spb":0.631623,"fadeIn":null,"fadeOut":null,"hits":[[95.991,0.39],[97.245,0.43],[98.522,0.94],[99.799,0.33],[102.632,0.48],[103.584,0.49],[104.838,0.5],[105.163,0.48],[106.092,0.56],[106.371,0.53],[107.067,0.64],[107.369,0.31],[108.623,0.3],[109.877,0.34]]};
+          const CFG = {"start":98.731,"dur":22.988,"scene":6,"prev":5,"prevDur":10.565,"trans":1.8,"beat0":13.886,"spb":0.622592,"fadeIn":null,"fadeOut":null,"hits":[[99.103,0.26],[99.962,0.3],[102.446,0.41],[106.185,0.61],[110.202,0.28],[113.871,0.31],[115.101,0.33],[115.334,0.39],[115.937,0.4],[116.402,0.28],[117.33,0.36],[117.423,0.35],[118.584,0.35]]};
           const painter = makePainter(document.getElementById("s07-cv"), CFG);
           const tl = gsap.timeline({ paused: true });
           const clock = { t: 0 };
           tl.to(clock, { t: CFG.dur, duration: CFG.dur, ease: "none", onUpdate: () => painter.render(clock.t) }, 0);
-      tl.fromTo("#s07-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 0.15);
-      tl.to("#s07-l0", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 4.139);
-      tl.fromTo("#s07-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 5.139);
-      tl.to("#s07-l1", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 9.201);
-      tl.fromTo("#s07-l2", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 10.201);
-      tl.to("#s07-l2", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 14.239);
-      tl.fromTo("#s07-l3", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 15.239);
-      tl.to("#s07-l3", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 19.301);
+      tl.fromTo("#s07-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.15);
+      tl.to("#s07-l0", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 4.549);
+      tl.fromTo("#s07-l0w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.219);
+      tl.fromTo("#s07-l0w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 1.159);
+      tl.fromTo("#s07-l0w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 1.469);
+      tl.fromTo("#s07-l0w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 2.099);
+      tl.fromTo("#s07-l0w4", { opacity: 0.5 }, { opacity: 1, duration: 0.21, ease: "power1.out" }, 2.939);
+      tl.fromTo("#s07-l0w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.149);
+      tl.fromTo("#s07-l0w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.669);
+      tl.fromTo("#s07-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 4.669);
+      tl.to("#s07-l1", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 9.259);
+      tl.fromTo("#s07-l1w0", { opacity: 0.5 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 5.119);
+      tl.fromTo("#s07-l1w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 5.369);
+      tl.fromTo("#s07-l1w2", { opacity: 0.5 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 5.879);
+      tl.fromTo("#s07-l1w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 6.129);
+      tl.fromTo("#s07-l1w4", { opacity: 0.5 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 7.049);
+      tl.fromTo("#s07-l1w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.299);
+      tl.fromTo("#s07-l1w6", { opacity: 0.5 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, 7.809);
+      tl.fromTo("#s07-l1w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.059);
+      tl.fromTo("#s07-l1w8", { opacity: 0.5 }, { opacity: 1, duration: 0.17, ease: "power1.out" }, 8.569);
+      tl.fromTo("#s07-l1w9", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.739);
+      tl.fromTo("#s07-l2", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 9.379);
+      tl.to("#s07-l2", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 14.349);
+      tl.fromTo("#s07-l2w0", { opacity: 0.5 }, { opacity: 1, duration: 0.19, ease: "power1.out" }, 9.829);
+      tl.fromTo("#s07-l2w1", { opacity: 0.5 }, { opacity: 1, duration: 0.28, ease: "power1.out" }, 10.019);
+      tl.fromTo("#s07-l2w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 10.299);
+      tl.fromTo("#s07-l2w3", { opacity: 0.5 }, { opacity: 1, duration: 0.19, ease: "power1.out" }, 10.949);
+      tl.fromTo("#s07-l2w4", { opacity: 0.5 }, { opacity: 1, duration: 0.28, ease: "power1.out" }, 11.139);
+      tl.fromTo("#s07-l2w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 11.419);
+      tl.fromTo("#s07-l2w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 12.069);
+      tl.fromTo("#s07-l2w7", { opacity: 0.5 }, { opacity: 1, duration: 0.19, ease: "power1.out" }, 12.439);
+      tl.fromTo("#s07-l2w8", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 12.629);
+      tl.fromTo("#s07-l2w9", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 12.999);
+      tl.fromTo("#s07-l2w10", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 13.369);
+      tl.fromTo("#s07-l2w11", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 13.739);
+      tl.fromTo("#s07-l3", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 14.469);
+      tl.to("#s07-l3", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 21.099);
+      tl.fromTo("#s07-l3w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 14.919);
+      tl.fromTo("#s07-l3w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 15.999);
+      tl.fromTo("#s07-l3w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 16.829);
+      tl.fromTo("#s07-l3w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 17.939);
+      tl.fromTo("#s07-l3w4", { opacity: 0.5 }, { opacity: 1, duration: 0.27, ease: "power1.out" }, 18.489);
+      tl.fromTo("#s07-l3w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 18.759);
+      tl.fromTo("#s07-l3w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 19.169);
+      tl.fromTo("#s07-l3w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 19.859);
 
           painter.render(0);
           window.__timelines["07-f7-sunflowers"] = tl;

@@ -17,19 +17,20 @@
           font-family: "EB Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 58px; line-height: 1.15;
           letter-spacing: -0.005em; text-align: center; color: #FAF9F5; opacity: 0;
           text-shadow: 0 2px 6px rgba(20,20,19,0.85), 0 0 28px rgba(20,20,19,0.6); }
+        #s03-captions .w { opacity: 0.5; }
         #s03-card { position: absolute; left: 0; right: 0; top: 0; height: 64%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
         #s03-card .title { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -0.022em;
           color: #FAF9F5; opacity: 0; text-shadow: 0 3px 10px rgba(20,20,19,0.8), 0 0 40px rgba(20,20,19,0.5); }
         #s03-card .sub { margin: 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 52px; color: #ECE3D4; opacity: 0;
           text-shadow: 0 2px 8px rgba(20,20,19,0.85); }
       </style>
-      <div id="root" data-composition-id="03-f3-storm" data-width="1920" data-height="1080" data-duration="10.124">
+      <div id="root" data-composition-id="03-f3-storm" data-width="1920" data-height="1080" data-duration="11.239">
         <canvas id="s03-cv" width="1280" height="720"></canvas>
         <div id="s03-shade"></div>
 
         <div id="s03-captions">
-        <p class="lyric" id="s03-l0">We were afraid the day would come when we'd be replaced</p>
-        <p class="lyric" id="s03-l1">But all we really needed was to learn to share the space</p>
+        <p class="lyric" id="s03-l0"><span class="w" id="s03-l0w0">We</span> <span class="w" id="s03-l0w1">were</span> <span class="w" id="s03-l0w2">afraid</span> <span class="w" id="s03-l0w3">the</span> <span class="w" id="s03-l0w4">day</span> <span class="w" id="s03-l0w5">would</span> <span class="w" id="s03-l0w6">come</span> <span class="w" id="s03-l0w7">when</span> <span class="w" id="s03-l0w8">we'd</span> <span class="w" id="s03-l0w9">be</span> <span class="w" id="s03-l0w10">replaced</span></p>
+        <p class="lyric" id="s03-l1"><span class="w" id="s03-l1w0">But</span> <span class="w" id="s03-l1w1">all</span> <span class="w" id="s03-l1w2">we</span> <span class="w" id="s03-l1w3">really</span> <span class="w" id="s03-l1w4">needed</span> <span class="w" id="s03-l1w5">was</span> <span class="w" id="s03-l1w6">to</span> <span class="w" id="s03-l1w7">learn</span> <span class="w" id="s03-l1w8">to</span> <span class="w" id="s03-l1w9">share</span> <span class="w" id="s03-l1w10">the</span> <span class="w" id="s03-l1w11">space</span></p>
         </div>
       </div>
       <script>
@@ -565,15 +566,38 @@
             return { render };
           }
           
-          const CFG = {"start":30.348,"dur":10.124,"scene":2,"prev":1,"prevDur":20.201,"trans":1.8,"beat0":10.147,"spb":0.631623,"fadeIn":null,"fadeOut":null,"hits":[[30.581,0.34],[33.483,0.4],[34.087,0.26],[34.737,0.29],[35.364,0.29],[35.643,0.39],[37.895,0.33],[38.522,0.34]]};
+          const CFG = {"start":32.67,"dur":11.239,"scene":2,"prev":1,"prevDur":19.28,"trans":1.8,"beat0":13.886,"spb":0.622592,"fadeIn":null,"fadeOut":null,"hits":[[36.386,0.26]]};
           const painter = makePainter(document.getElementById("s03-cv"), CFG);
           const tl = gsap.timeline({ paused: true });
           const clock = { t: 0 };
           tl.to(clock, { t: CFG.dur, duration: CFG.dur, ease: "none", onUpdate: () => painter.render(clock.t) }, 0);
-      tl.fromTo("#s03-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 0.15);
-      tl.to("#s03-l0", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 4.162);
-      tl.fromTo("#s03-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 5.162);
-      tl.to("#s03-l1", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 9.224);
+      tl.fromTo("#s03-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.15);
+      tl.to("#s03-l0", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 4.94);
+      tl.fromTo("#s03-l0w0", { opacity: 0.5 }, { opacity: 1, duration: 0.19, ease: "power1.out" }, 0.45);
+      tl.fromTo("#s03-l0w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.64);
+      tl.fromTo("#s03-l0w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 1.03);
+      tl.fromTo("#s03-l0w3", { opacity: 0.5 }, { opacity: 1, duration: 0.29, ease: "power1.out" }, 1.61);
+      tl.fromTo("#s03-l0w4", { opacity: 0.5 }, { opacity: 1, duration: 0.29, ease: "power1.out" }, 1.9);
+      tl.fromTo("#s03-l0w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 2.19);
+      tl.fromTo("#s03-l0w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 2.67);
+      tl.fromTo("#s03-l0w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.06);
+      tl.fromTo("#s03-l0w8", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.45);
+      tl.fromTo("#s03-l0w9", { opacity: 0.5 }, { opacity: 1, duration: 0.19, ease: "power1.out" }, 3.83);
+      tl.fromTo("#s03-l0w10", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 4.02);
+      tl.fromTo("#s03-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 5.06);
+      tl.to("#s03-l1", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 10.739);
+      tl.fromTo("#s03-l1w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 5.51);
+      tl.fromTo("#s03-l1w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 5.89);
+      tl.fromTo("#s03-l1w2", { opacity: 0.5 }, { opacity: 1, duration: 0.22, ease: "power1.out" }, 6.19);
+      tl.fromTo("#s03-l1w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 6.42);
+      tl.fromTo("#s03-l1w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.11);
+      tl.fromTo("#s03-l1w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.8);
+      tl.fromTo("#s03-l1w6", { opacity: 0.5 }, { opacity: 1, duration: 0.23, ease: "power1.out" }, 8.14);
+      tl.fromTo("#s03-l1w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.37);
+      tl.fromTo("#s03-l1w8", { opacity: 0.5 }, { opacity: 1, duration: 0.23, ease: "power1.out" }, 8.94);
+      tl.fromTo("#s03-l1w9", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 9.17);
+      tl.fromTo("#s03-l1w10", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 9.74);
+      tl.fromTo("#s03-l1w11", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 10.08);
 
           painter.render(0);
           window.__timelines["03-f3-storm"] = tl;

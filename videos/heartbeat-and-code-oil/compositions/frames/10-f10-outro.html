@@ -17,19 +17,19 @@
           font-family: "EB Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 58px; line-height: 1.15;
           letter-spacing: -0.005em; text-align: center; color: #FAF9F5; opacity: 0;
           text-shadow: 0 2px 6px rgba(20,20,19,0.85), 0 0 28px rgba(20,20,19,0.6); }
+        #s10-captions .w { opacity: 0.5; }
         #s10-card { position: absolute; left: 0; right: 0; top: 0; height: 64%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
         #s10-card .title { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -0.022em;
           color: #FAF9F5; opacity: 0; text-shadow: 0 3px 10px rgba(20,20,19,0.8), 0 0 40px rgba(20,20,19,0.5); }
         #s10-card .sub { margin: 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 52px; color: #ECE3D4; opacity: 0;
           text-shadow: 0 2px 8px rgba(20,20,19,0.85); }
       </style>
-      <div id="root" data-composition-id="10-f10-outro" data-width="1920" data-height="1080" data-duration="14.461">
+      <div id="root" data-composition-id="10-f10-outro" data-width="1920" data-height="1080" data-duration="31.123">
         <canvas id="s10-cv" width="1280" height="720"></canvas>
         <div id="s10-shade"></div>
         <div class="card end" id="s10-card"><h1 class="title" id="s10-title">Heartbeat and Code</h1><p class="sub" id="s10-sub">Together we write tomorrow</p></div>
         <div id="s10-captions">
-        <p class="lyric" id="s10-l0">Heartbeat and code</p>
-        <p class="lyric" id="s10-l1">Together we write tomorrow</p>
+        <p class="lyric" id="s10-l0"><span class="w" id="s10-l0w0">Heartbeat</span> <span class="w" id="s10-l0w1">and</span> <span class="w" id="s10-l0w2">code,</span> <span class="w" id="s10-l0w3">together</span> <span class="w" id="s10-l0w4">we</span> <span class="w" id="s10-l0w5">write</span> <span class="w" id="s10-l0w6">tomorrow</span></p>
         </div>
       </div>
       <script>
@@ -565,17 +565,22 @@
             return { render };
           }
           
-          const CFG = {"start":150.999,"dur":14.461,"scene":9,"prev":8,"prevDur":19.574,"trans":1.8,"beat0":10.147,"spb":0.631623,"fadeIn":null,"fadeOut":[10.6,14.2,0.32],"hits":[[150.001,0.59],[150.326,0.33],[150.442,0.51],[150.767,0.36],[150.883,0.44]]};
+          const CFG = {"start":176.797,"dur":31.123,"scene":9,"prev":8,"prevDur":28.514,"trans":1.8,"beat0":13.886,"spb":0.622592,"fadeIn":null,"fadeOut":[24.12299999999999,30.12299999999999,0.32],"hits":[[175.38,0.44],[175.636,0.46],[175.938,0.73],[176.774,0.55],[177.865,0.55],[178.887,0.53],[179.49,0.51],[180.326,0.61],[180.767,0.49],[180.953,0.56],[181.789,0.49],[182.161,0.3],[182.253,0.65],[182.787,0.39]]};
           const painter = makePainter(document.getElementById("s10-cv"), CFG);
           const tl = gsap.timeline({ paused: true });
           const clock = { t: 0 };
           tl.to(clock, { t: CFG.dur, duration: CFG.dur, ease: "none", onUpdate: () => painter.render(clock.t) }, 0);
-      tl.fromTo("#s10-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 0.55);
-      tl.to("#s10-l0", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 4.45);
-      tl.fromTo("#s10-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 5.6);
-      tl.to("#s10-l1", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 9.05);
-      tl.fromTo("#s10-title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.8, ease: "power2.out" }, 10.0);
-      tl.fromTo("#s10-sub", { opacity: 0 }, { opacity: 1, duration: 1.4, ease: "power1.out" }, 11.4);
+      tl.fromTo("#s10-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.15);
+      tl.to("#s10-l0", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 12.353);
+      tl.fromTo("#s10-l0w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.413);
+      tl.fromTo("#s10-l0w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 2.913);
+      tl.fromTo("#s10-l0w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.743);
+      tl.fromTo("#s10-l0w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 5.403);
+      tl.fromTo("#s10-l0w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.633);
+      tl.fromTo("#s10-l0w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.193);
+      tl.fromTo("#s10-l0w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 9.583);
+      tl.fromTo("#s10-title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.8, ease: "power2.out" }, 13.203);
+      tl.fromTo("#s10-sub", { opacity: 0 }, { opacity: 1, duration: 1.4, ease: "power1.out" }, 14.603);
           painter.render(0);
           window.__timelines["10-f10-outro"] = tl;
           tl.seek(0);

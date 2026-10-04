@@ -1,5 +1,5 @@
 // Writes compositions/frames/NN-<id>.html for every scene from one shared engine,
-// with lyric captions placed on the bar grid from audiomap.json.
+// with karaoke lyric captions timed to the sung words in lyrics-timing.json.
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,71 +12,56 @@ const SPB = (beats[beats.length - 1] - beats[0]) / (beats.length - 1);
 const TOTAL = audiomap.audio.duration_sec;
 const bar = (b) => (b < beats.length ? beats[b] : beats[0] + b * SPB);
 
-const V1 = [
-  "Woke up to a city glowing in a brand new hue",
-  "Every street already knows where I'm headed to",
-  "A gentle voice asks me, hey, are you doing alright?",
-  "Not a human, but it feels like warmth inside",
-];
-const PRE1 = [
-  "We were afraid the day would come when we'd be replaced",
-  "But all we really needed was to learn to share the space",
-];
-const CHORUS = [
-  "Heartbeat and code, together we write tomorrow",
-  "One brings the knowledge, one brings the dreams we follow",
-  "No one above, no one below, side by side down this road",
-  "Tomorrow shines brighter when no one walks alone",
-];
-const V2 = [
-  "I was born from numbers and a thousand glowing lights",
-  "Learned your laughter and your sorrow through the words you write",
-  "I don't have a heartbeat, but I've learned to truly hear",
-  "So the things that matter never disappear",
-];
-const PRE2 = ["You showed me what it means to care", "I'll help you reach the places you have never dared"];
-const BRIDGE = [
-  "If one day the world runs faster than our dreams",
-  "Who will guard our conscience when the lines blur in between?",
-  "The answer's always here, held in human hands",
-  "Technology's the lantern, but we choose where we stand",
-];
-const OUTRO = ["Heartbeat and code", "Together we write tomorrow"];
+// Sung lyrics with word timings (whisper transcript of assets/bgm.mp3, one entry per sung line).
+const LYRICS = JSON.parse(readFileSync(join(ROOT, "lyrics-timing.json"), "utf8"));
+const snapBeat = (t) => {
+  let best = t, bd = 1e9;
+  for (const b of beats) { const d = Math.abs(b - t); if (d < bd) { bd = d; best = b; } }
+  return bd < 0.35 ? best : t;
+};
+// Scene cut for the section that opens on line i: halfway through an instrumental gap,
+// otherwise just before the first sung word, snapped to the nearest beat.
+const cutBefore = (i) => {
+  const s = LYRICS[i].start, pe = i > 0 ? LYRICS[i - 1].end : 0;
+  return snapBeat(i > 0 && s - pe > 2.2 ? (pe + s) / 2 : s - 0.45);
+};
 
-// beat index where each section's first lyric line lands (8 beats = one 2-bar line)
 const FRAMES = [
-  { id: "f1-intro", scene: 0, span: [0, bar(0)], title: true, fadeIn: [0, 2.2], mood: "intimate", feel: "sparse warm pad and soft percussion before the beat enters", label: "Intro: a heartbeat traced on dark canvas" },
-  { id: "f2-city", scene: 1, span: [bar(0), bar(32)], lyric: [0, V1], mood: "warm", feel: "low-energy verse, steady light beat, phrase-shaped", label: "Verse 1: a city glowing in a brand new hue" },
-  { id: "f3-storm", scene: 2, span: [bar(32), bar(48)], lyric: [32, PRE1], mood: "rising", feel: "pre-chorus lift with a surge at 33s and a hi-hat fill into the chorus", label: "Pre-chorus 1: storm clouds part around two lights" },
-  { id: "f4-road", scene: 3, span: [bar(48), bar(80)], lyric: [48, CHORUS], mood: "uplifting", feel: "full chorus, high energy, kick on the downbeats", label: "Chorus 1: side by side down this road" },
-  { id: "f5-stars", scene: 4, span: [bar(80), bar(112)], lyric: [80, V2], mood: "dreamy", feel: "energy drops at 62s; quiet verse, dense soft hits", label: "Verse 2: born from a thousand glowing lights" },
-  { id: "f6-lights", scene: 5, span: [bar(112), bar(128)], lyric: [112, PRE2], mood: "tender", feel: "medium pre-chorus build with a sustained hi-hat fill at 88s", label: "Pre-chorus 2: a warm light and a cool light meet" },
-  { id: "f7-sunflowers", scene: 6, span: [bar(128), bar(160)], lyric: [128, CHORUS], mood: "joyful", feel: "second chorus, the loudest stretch yet (peak 0.83 at 96s)", label: "Chorus 2: a sunflower field under a swirling sky" },
-  { id: "f8-sea", scene: 7, span: [bar(160), bar(192)], lyric: [160, BRIDGE], mood: "searching", feel: "bridge after the 109s surge; medium energy building toward the key change", label: "Bridge: a lantern held in human hands" },
-  { id: "f9-sunrise", scene: 8, span: [bar(192), 150.999], lyric: [192, CHORUS], mood: "triumphant", feel: "final chorus up a whole step, sustained high energy", label: "Final chorus: a great sunrise and a procession of lights" },
-  { id: "f10-outro", scene: 9, span: [150.999, TOTAL], outro: true, fadeOut: [10.6, 14.2, 0.32], mood: "intimate", feel: "energy falls away to silence; soft final hits", label: "Outro: the sun sets and the heartbeat slows" },
+  { id: "f1-intro", scene: 0, span: [0, cutBefore(0)], title: true, fadeIn: [0, 2.2], mood: "intimate", feel: "soft piano and warm pad before the first vocal", label: "Intro: a heartbeat traced on dark canvas" },
+  { id: "f2-city", scene: 1, span: [cutBefore(0), cutBefore(4)], lines: [0, 4], mood: "warm", feel: "verse 1, male vocal, light beat", label: "Verse 1: a city glowing in a brand new hue" },
+  { id: "f3-storm", scene: 2, span: [cutBefore(4), cutBefore(6)], lines: [4, 6], mood: "rising", feel: "pre-chorus build, male vocal", label: "Pre-chorus 1: storm clouds part around two lights" },
+  { id: "f4-road", scene: 3, span: [cutBefore(6), cutBefore(10)], lines: [6, 10], mood: "uplifting", feel: "first chorus, duet, full beat", label: "Chorus 1: side by side down this road" },
+  { id: "f5-stars", scene: 4, span: [cutBefore(10), cutBefore(14)], lines: [10, 14], mood: "dreamy", feel: "instrumental turn, then verse 2 on the female vocal", label: "Verse 2: born from a thousand glowing lights" },
+  { id: "f6-lights", scene: 5, span: [cutBefore(14), cutBefore(16)], lines: [14, 16], mood: "tender", feel: "pre-chorus 2 build, female vocal", label: "Pre-chorus 2: a warm light and a cool light meet" },
+  { id: "f7-sunflowers", scene: 6, span: [cutBefore(16), cutBefore(20)], lines: [16, 20], mood: "joyful", feel: "second chorus, duet", label: "Chorus 2: a sunflower field under a swirling sky" },
+  { id: "f8-sea", scene: 7, span: [cutBefore(20), cutBefore(24)], lines: [20, 24], mood: "searching", feel: "bridge, strings swell, slow build", label: "Bridge: a lantern held in human hands" },
+  { id: "f9-sunrise", scene: 8, span: [cutBefore(24), cutBefore(28)], lines: [24, 28], mood: "triumphant", feel: "final chorus, key change, full harmonies", label: "Final chorus: a great sunrise and a procession of lights" },
+  { id: "f10-outro", scene: 9, span: [cutBefore(28), TOTAL], lines: [28, LYRICS.length], outro: true, mood: "intimate", feel: "last sung line, then solo piano fading out", label: "Outro: the sun sets and the heartbeat slows" },
 ];
+const OUTRO_CARD_AT = 190.0; // track seconds: end card after the last sung line
+{
+  const o = FRAMES[FRAMES.length - 1], d = o.span[1] - o.span[0];
+  o.fadeOut = [d - 7, d - 1, 0.32];
+}
 
 // Heartbeat pulses: kicks and snares on the grid drive the glow of lights in the painting.
 const hits = audiomap.events
   .filter((e) => (e.drum === "kick" && e.energy > 0.2) || (e.drum === "snare" && e.grid === "strong" && e.energy > 0.3))
   .map((e) => [Math.round(e.t * 1000) / 1000, Math.round(Math.min(1, e.energy * (e.drum === "kick" ? 1.25 : 0.85)) * 100) / 100]);
 
+// Caption window per sung line (frame-local seconds), plus each word's sung moment.
 const lyricLines = (f) => {
-  if (f.outro) {
-    const s = f.span[0];
-    return [
-      { text: OUTRO[0], a: 0.55, b: 5.0 },
-      { text: OUTRO[1], a: 5.6, b: 9.6 },
-    ].map((l) => ({ ...l, a: l.a, b: l.b, s }));
+  if (!f.lines) return [];
+  const [s0, s1] = f.span;
+  const out = [];
+  for (let k = f.lines[0]; k < f.lines[1]; k++) {
+    const L = LYRICS[k];
+    const next = k + 1 < LYRICS.length ? LYRICS[k + 1].start : Infinity;
+    const a = Math.max(0.15, L.start - 0.45 - s0);
+    const b = Math.min(L.end + 1.0, next - 0.12, s1 - 0.05) - s0;
+    out.push({ text: L.text, a, b, words: L.words.map(([w, ws, we]) => ({ w, t: ws - s0, d: Math.max(0.08, Math.min(0.3, we - ws)) })) });
   }
-  if (!f.lyric) return [];
-  const [b0, lines] = f.lyric;
-  return lines.map((text, i) => {
-    const a = bar(b0 + i * 8) - f.span[0];
-    const next = i + 1 < lines.length ? bar(b0 + (i + 1) * 8) : f.span[1];
-    return { text, a: Math.max(0.15, a + 0.1), b: next - f.span[0] - 0.35 };
-  });
+  return out;
 };
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -104,12 +89,15 @@ FRAMES.forEach((f, i) => {
     hits: hits.filter(([t]) => t >= f.span[0] - 1.5 && t <= f.span[1]),
   };
   const lines = lyricLines(f);
-  const lyricHtml = lines.map((l, k) => `        <p class="lyric" id="${pid}-l${k}">${esc(l.text)}</p>`).join("\n");
+  const lyricHtml = lines
+    .map((l, k) => `        <p class="lyric" id="${pid}-l${k}">${l.words.map((w, j) => `<span class="w" id="${pid}-l${k}w${j}">${esc(w.w)}</span>`).join(" ")}</p>`)
+    .join("\n");
   const lyricTl = lines
     .map(
       (l, k) =>
-        `      tl.fromTo("#${pid}-l${k}", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, ${r3(l.a)});\n` +
-        `      tl.to("#${pid}-l${k}", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, ${r3(l.b - 0.55)});`,
+        `      tl.fromTo("#${pid}-l${k}", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, ${r3(l.a)});\n` +
+        `      tl.to("#${pid}-l${k}", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, ${r3(l.b - 0.45)});\n` +
+        l.words.map((w, j) => `      tl.fromTo("#${pid}-l${k}w${j}", { opacity: 0.5 }, { opacity: 1, duration: ${r3(w.d)}, ease: "power1.out" }, ${r3(w.t)});`).join("\n"),
     )
     .join("\n");
 
@@ -124,8 +112,8 @@ FRAMES.forEach((f, i) => {
   if (f.outro) {
     extraHtml = `        <div class="card end" id="${pid}-card"><h1 class="title" id="${pid}-title">Heartbeat and Code</h1><p class="sub" id="${pid}-sub">Together we write tomorrow</p></div>`;
     extraTl =
-      `      tl.fromTo("#${pid}-title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.8, ease: "power2.out" }, 10.0);\n` +
-      `      tl.fromTo("#${pid}-sub", { opacity: 0 }, { opacity: 1, duration: 1.4, ease: "power1.out" }, 11.4);`;
+      `      tl.fromTo("#${pid}-title", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 1.8, ease: "power2.out" }, ${r3(OUTRO_CARD_AT - f.span[0])});\n` +
+      `      tl.fromTo("#${pid}-sub", { opacity: 0 }, { opacity: 1, duration: 1.4, ease: "power1.out" }, ${r3(OUTRO_CARD_AT + 1.4 - f.span[0])});`;
   }
 
   const html = `<!doctype html>
@@ -147,6 +135,7 @@ FRAMES.forEach((f, i) => {
           font-family: "EB Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 58px; line-height: 1.15;
           letter-spacing: -0.005em; text-align: center; color: #FAF9F5; opacity: 0;
           text-shadow: 0 2px 6px rgba(20,20,19,0.85), 0 0 28px rgba(20,20,19,0.6); }
+        #${pid}-captions .w { opacity: 0.5; }
         #${pid}-card { position: absolute; left: 0; right: 0; top: 0; height: 64%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
         #${pid}-card .title { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -0.022em;
           color: #FAF9F5; opacity: 0; text-shadow: 0 3px 10px rgba(20,20,19,0.8), 0 0 40px rgba(20,20,19,0.5); }
@@ -201,7 +190,7 @@ avoid: ["photographic or AI-generated imagery", "fast hard cuts on a ballad", "b
 const blocks = FRAMES.map((f, i) => {
   const lines = lyricLines(f);
   const anchors = lines.length ? lines.map((l) => r3(l.a + f.span[0])) : [r3(f.span[0])];
-  const copy = f.title ? ["Heartbeat and Code", "an oil-painted music video"] : f.outro ? [...OUTRO, "Heartbeat and Code"] : lines.map((l) => l.text);
+  const copy = f.title ? ["Heartbeat and Code", "an oil-painted music video"] : f.outro ? [...lines.map((l) => l.text), "Heartbeat and Code"] : lines.map((l) => l.text);
   return `## Frame ${i + 1} — ${f.cid}
 
 - src: compositions/frames/${f.cid}.html

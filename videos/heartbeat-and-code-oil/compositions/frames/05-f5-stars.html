@@ -17,21 +17,22 @@
           font-family: "EB Garamond", Georgia, serif; font-style: italic; font-weight: 400; font-size: 58px; line-height: 1.15;
           letter-spacing: -0.005em; text-align: center; color: #FAF9F5; opacity: 0;
           text-shadow: 0 2px 6px rgba(20,20,19,0.85), 0 0 28px rgba(20,20,19,0.6); }
+        #s05-captions .w { opacity: 0.5; }
         #s05-card { position: absolute; left: 0; right: 0; top: 0; height: 64%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
         #s05-card .title { margin: 0; font-family: "EB Garamond", Georgia, serif; font-weight: 400; font-size: 150px; line-height: 1; letter-spacing: -0.022em;
           color: #FAF9F5; opacity: 0; text-shadow: 0 3px 10px rgba(20,20,19,0.8), 0 0 40px rgba(20,20,19,0.5); }
         #s05-card .sub { margin: 0; font-family: "EB Garamond", Georgia, serif; font-style: italic; font-size: 52px; color: #ECE3D4; opacity: 0;
           text-shadow: 0 2px 8px rgba(20,20,19,0.85); }
       </style>
-      <div id="root" data-composition-id="05-f5-stars" data-width="1920" data-height="1080" data-duration="20.201">
+      <div id="root" data-composition-id="05-f5-stars" data-width="1920" data-height="1080" data-duration="21.176">
         <canvas id="s05-cv" width="1280" height="720"></canvas>
         <div id="s05-shade"></div>
 
         <div id="s05-captions">
-        <p class="lyric" id="s05-l0">I was born from numbers and a thousand glowing lights</p>
-        <p class="lyric" id="s05-l1">Learned your laughter and your sorrow through the words you write</p>
-        <p class="lyric" id="s05-l2">I don't have a heartbeat, but I've learned to truly hear</p>
-        <p class="lyric" id="s05-l3">So the things that matter never disappear</p>
+        <p class="lyric" id="s05-l0"><span class="w" id="s05-l0w0">I</span> <span class="w" id="s05-l0w1">was</span> <span class="w" id="s05-l0w2">born</span> <span class="w" id="s05-l0w3">from</span> <span class="w" id="s05-l0w4">numbers</span> <span class="w" id="s05-l0w5">and</span> <span class="w" id="s05-l0w6">a</span> <span class="w" id="s05-l0w7">thousand</span> <span class="w" id="s05-l0w8">glowing</span> <span class="w" id="s05-l0w9">lights</span></p>
+        <p class="lyric" id="s05-l1"><span class="w" id="s05-l1w0">Learned</span> <span class="w" id="s05-l1w1">your</span> <span class="w" id="s05-l1w2">laughter</span> <span class="w" id="s05-l1w3">and</span> <span class="w" id="s05-l1w4">your</span> <span class="w" id="s05-l1w5">sorrow</span> <span class="w" id="s05-l1w6">through</span> <span class="w" id="s05-l1w7">the</span> <span class="w" id="s05-l1w8">words</span> <span class="w" id="s05-l1w9">you</span> <span class="w" id="s05-l1w10">write</span></p>
+        <p class="lyric" id="s05-l2"><span class="w" id="s05-l2w0">I</span> <span class="w" id="s05-l2w1">don't</span> <span class="w" id="s05-l2w2">have</span> <span class="w" id="s05-l2w3">a</span> <span class="w" id="s05-l2w4">heartbeat,</span> <span class="w" id="s05-l2w5">but</span> <span class="w" id="s05-l2w6">I've</span> <span class="w" id="s05-l2w7">learned</span> <span class="w" id="s05-l2w8">to</span> <span class="w" id="s05-l2w9">truly</span> <span class="w" id="s05-l2w10">hear</span></p>
+        <p class="lyric" id="s05-l3"><span class="w" id="s05-l3w0">So</span> <span class="w" id="s05-l3w1">the</span> <span class="w" id="s05-l3w2">things</span> <span class="w" id="s05-l3w3">that</span> <span class="w" id="s05-l3w4">matter</span> <span class="w" id="s05-l3w5">never</span> <span class="w" id="s05-l3w6">disappear</span></p>
         </div>
       </div>
       <script>
@@ -567,19 +568,58 @@
             return { render };
           }
           
-          const CFG = {"start":60.674,"dur":20.201,"scene":4,"prev":3,"prevDur":20.202,"trans":1.8,"beat0":10.147,"spb":0.631623,"fadeIn":null,"fadeOut":null,"hits":[[59.373,0.34],[59.675,0.51],[60.883,0.31],[80.852,0.28]]};
+          const CFG = {"start":66.99,"dur":21.176,"scene":4,"prev":3,"prevDur":23.081,"trans":1.8,"beat0":13.886,"spb":0.622592,"fadeIn":null,"fadeOut":null,"hits":[[65.782,0.41],[68.615,0.26],[70.055,0.3],[72.562,0.46],[78.785,0.3]]};
           const painter = makePainter(document.getElementById("s05-cv"), CFG);
           const tl = gsap.timeline({ paused: true });
           const clock = { t: 0 };
           tl.to(clock, { t: CFG.dur, duration: CFG.dur, ease: "none", onUpdate: () => painter.render(clock.t) }, 0);
-      tl.fromTo("#s05-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 0.15);
-      tl.to("#s05-l0", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 4.138);
-      tl.fromTo("#s05-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 5.138);
-      tl.to("#s05-l1", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 9.2);
-      tl.fromTo("#s05-l2", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 10.2);
-      tl.to("#s05-l2", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 14.262);
-      tl.fromTo("#s05-l3", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" }, 15.262);
-      tl.to("#s05-l3", { opacity: 0, y: -8, duration: 0.55, ease: "power1.in" }, 19.301);
+      tl.fromTo("#s05-l0", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 1.55);
+      tl.to("#s05-l0", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 5.74);
+      tl.fromTo("#s05-l0w0", { opacity: 0.5 }, { opacity: 1, duration: 0.08, ease: "power1.out" }, 2);
+      tl.fromTo("#s05-l0w1", { opacity: 0.5 }, { opacity: 1, duration: 0.26, ease: "power1.out" }, 2.08);
+      tl.fromTo("#s05-l0w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 2.34);
+      tl.fromTo("#s05-l0w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 2.68);
+      tl.fromTo("#s05-l0w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.02);
+      tl.fromTo("#s05-l0w5", { opacity: 0.5 }, { opacity: 1, duration: 0.26, ease: "power1.out" }, 3.62);
+      tl.fromTo("#s05-l0w6", { opacity: 0.5 }, { opacity: 1, duration: 0.08, ease: "power1.out" }, 3.88);
+      tl.fromTo("#s05-l0w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 3.96);
+      tl.fromTo("#s05-l0w8", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 4.65);
+      tl.fromTo("#s05-l0w9", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 5.25);
+      tl.fromTo("#s05-l1", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 5.86);
+      tl.to("#s05-l1", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 10.5);
+      tl.fromTo("#s05-l1w0", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 6.31);
+      tl.fromTo("#s05-l1w1", { opacity: 0.5 }, { opacity: 1, duration: 0.28, ease: "power1.out" }, 6.84);
+      tl.fromTo("#s05-l1w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.15);
+      tl.fromTo("#s05-l1w3", { opacity: 0.5 }, { opacity: 1, duration: 0.23, ease: "power1.out" }, 7.75);
+      tl.fromTo("#s05-l1w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 7.98);
+      tl.fromTo("#s05-l1w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.28);
+      tl.fromTo("#s05-l1w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 8.74);
+      tl.fromTo("#s05-l1w7", { opacity: 0.5 }, { opacity: 1, duration: 0.23, ease: "power1.out" }, 9.27);
+      tl.fromTo("#s05-l1w8", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 9.5);
+      tl.fromTo("#s05-l1w9", { opacity: 0.5 }, { opacity: 1, duration: 0.23, ease: "power1.out" }, 9.88);
+      tl.fromTo("#s05-l1w10", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 10.11);
+      tl.fromTo("#s05-l2", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 10.62);
+      tl.to("#s05-l2", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 15.75);
+      tl.fromTo("#s05-l2w0", { opacity: 0.5 }, { opacity: 1, duration: 0.09, ease: "power1.out" }, 11.07);
+      tl.fromTo("#s05-l2w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 11.16);
+      tl.fromTo("#s05-l2w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 11.64);
+      tl.fromTo("#s05-l2w3", { opacity: 0.5 }, { opacity: 1, duration: 0.09, ease: "power1.out" }, 12.02);
+      tl.fromTo("#s05-l2w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 12.11);
+      tl.fromTo("#s05-l2w5", { opacity: 0.5 }, { opacity: 1, duration: 0.29, ease: "power1.out" }, 13.17);
+      tl.fromTo("#s05-l2w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 13.46);
+      tl.fromTo("#s05-l2w7", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 13.84);
+      tl.fromTo("#s05-l2w8", { opacity: 0.5 }, { opacity: 1, duration: 0.19, ease: "power1.out" }, 14.51);
+      tl.fromTo("#s05-l2w9", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 14.7);
+      tl.fromTo("#s05-l2w10", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 15.18);
+      tl.fromTo("#s05-l3", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 15.87);
+      tl.to("#s05-l3", { opacity: 0, y: -8, duration: 0.45, ease: "power1.in" }, 20.676);
+      tl.fromTo("#s05-l3w0", { opacity: 0.5 }, { opacity: 1, duration: 0.26, ease: "power1.out" }, 16.32);
+      tl.fromTo("#s05-l3w1", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 16.65);
+      tl.fromTo("#s05-l3w2", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 16.99);
+      tl.fromTo("#s05-l3w3", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 17.76);
+      tl.fromTo("#s05-l3w4", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 18.29);
+      tl.fromTo("#s05-l3w5", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 19.08);
+      tl.fromTo("#s05-l3w6", { opacity: 0.5 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 19.74);
 
           painter.render(0);
           window.__timelines["05-f5-stars"] = tl;
