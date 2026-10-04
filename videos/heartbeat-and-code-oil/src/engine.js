@@ -1,0 +1,530 @@
+// Oil-paint engine: scenes are painted procedurally at low resolution, then
+// re-painted as layered, flow-aligned brush strokes with impasto lighting.
+// Everything is a pure function of time, so any frame can be rendered on seek.
+function makePainter(canvas, cfg) {
+  const SCENE_W = 480, SCENE_H = 270, FLOW_W = 240, FLOW_H = 135;
+  const gl = canvas.getContext("webgl2", { preserveDrawingBuffer: true, antialias: false, alpha: false });
+  if (!gl) throw new Error("webgl2 unavailable");
+
+  const COMMON = `#version 300 es
+precision highp float;
+#define PI 3.14159265
+float h21(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
+float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+  return mix(mix(h21(i),h21(i+vec2(1.,0.)),f.x), mix(h21(i+vec2(0.,1.)),h21(i+vec2(1.,1.)),f.x), f.y); }
+float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=p*2.03+vec2(17.1,9.7); a*=.5; } return v; }
+float lum(vec3 c){ return dot(c, vec3(.299,.587,.114)); }
+`;
+
+  const VERT = `#version 300 es
+void main(){ vec2 p = vec2(float((gl_VertexID<<1)&2), float(gl_VertexID&2)); gl_Position = vec4(p*2.-1., 0., 1.); }`;
+
+  const SCENE = COMMON + `
+uniform vec2 uRes;
+uniform float uT, uP, uPulse, uBeat;
+uniform int uScene;
+out vec4 fragColor;
+float glow(float d, float r){ return exp(-d*d/(r*r)); }
+float sdCapsule(vec2 p, vec2 a, vec2 b, float r){ vec2 pa=p-a, ba=b-a; float h=clamp(dot(pa,ba)/dot(ba,ba),0.,1.); return length(pa-ba*h)-r; }
+float figure(vec2 q, vec2 base, float s){
+  float body = sdCapsule(q, base+vec2(0., s*.36), base+vec2(0., s*.62), s*.12);
+  float legs = min(sdCapsule(q, base+vec2(-s*.05,0.), base+vec2(-s*.035,s*.38), s*.045),
+                   sdCapsule(q, base+vec2( s*.05,0.), base+vec2( s*.035,s*.38), s*.045));
+  float head = length(q-(base+vec2(0., s*.84))) - s*.11;
+  return min(min(body,legs),head);
+}
+float ecg(float ph){
+  return .10*glow(ph-.16,.035) - .14*glow(ph-.33,.012) + 1.0*glow(ph-.37,.013) - .30*glow(ph-.41,.013) + .20*glow(ph-.60,.05);
+}
+// distance to the ECG trace, sampled along the curve so the spikes keep a constant stroke width
+float ecgDist(vec2 q, float amp, float off){
+  float dmin = 1e3;
+  for(int k=-8;k<=8;k++){
+    float x = q.x + float(k)*.0018;
+    vec2 c = vec2(x, ecg(fract((x+.95)/.47))*amp + off);
+    dmin = min(dmin, length(q - c));
+  }
+  return dmin;
+}
+vec3 skyGrad(float y, vec3 top, vec3 mid, vec3 bot, float hz){
+  float k = clamp((y-hz)/(0.55-hz), 0., 1.);
+  return k<.5 ? mix(bot, mid, k*2.) : mix(mid, top, k*2.-1.);
+}
+vec2 warp(vec2 q, float t){ return q + .25*vec2(fbm(q*2.2+vec2(0.,t*.04)), fbm(q*2.2+vec2(5.2,1.3)-t*.035)); }
+vec2 rot2(vec2 v, float a){ float c=cos(a), s=sin(a); return vec2(c*v.x-s*v.y, s*v.x+c*v.y); }
+
+// 0 · intro: a heartbeat traced across a dark umber canvas, dawn warming below
+vec3 s0(vec2 q){
+  vec3 col = mix(vec3(.055,.04,.035), vec3(.15,.10,.075), fbm(q*3.+3.));
+  float rev = mix(-1., 1., smoothstep(.04,.82,uP));
+  float amp = .2*(1.+.5*uPulse);
+  float d = ecgDist(q, amp, -.04);
+  float on = step(q.x, rev);
+  col += vec3(1.,.42,.28)*on*(glow(d,.007)*1.3 + glow(d,.035)*.35);
+  float hy = ecg(fract((rev+.95)/.47))*amp - .04;
+  col += vec3(1.,.72,.45)*glow(length(q-vec2(rev,hy)),.05)*.9*step(rev,.95);
+  float dawn = smoothstep(.6,1.,uP);
+  col += vec3(.9,.5,.25)*dawn*exp(-(q.y+.5)*4.)*.7;
+  return col;
+}
+
+// 1 · verse 1: a city glowing in a brand new hue, streets of moving light
+vec3 s1(vec2 q){
+  q.x += uP*.08;
+  float hz = -.16;
+  vec3 col = skyGrad(q.y, vec3(.16,.34,.48), vec3(.92,.58,.46), vec3(1.,.8,.45), hz);
+  float cl = fbm(vec2(q.x*1.4+uT*.015, q.y*5.));
+  col = mix(col, vec3(1.,.78,.7), smoothstep(.55,.8,cl)*.5*step(0.,q.y));
+  vec2 sp = vec2(.38,-.06+.12*uP);
+  float sd = length(q-sp);
+  col = mix(col, vec3(1.,.93,.7), smoothstep(.075,.065,sd));
+  col += vec3(1.,.6,.3)*glow(sd,.22)*.45*(1.+.3*uPulse);
+  float i1 = floor((q.x+3.)*9.);
+  float hb = hz + .06 + .22*pow(h21(vec2(i1,3.)),1.5);
+  if(q.y < hb) col = mix(col, vec3(.53,.41,.53), .85);
+  float i2 = floor((q.x+3.)*6.);
+  float hf = hz - .02 + .3*pow(h21(vec2(i2,7.)),2.);
+  if(q.y < hf){
+    col = vec3(.16,.13,.25) + .05*fbm(q*8.);
+    vec2 w = q*vec2(70.,48.);
+    vec2 wi = floor(w);
+    float lit = step(.58, h21(wi+i2));
+    float tw = .7+.3*sin(uT*2.+h21(wi)*20.);
+    vec2 wf = fract(w)-.5;
+    float win = step(abs(wf.x),.28)*step(abs(wf.y),.3);
+    col += vec3(1.,.72,.38)*win*lit*tw*(.8+.5*uPulse);
+  }
+  float gy = -.3;
+  if(q.y < gy){
+    float a = atan(q.x, gy-q.y);
+    float rl = smoothstep(.07,.0,abs(fract(a*2.2+.5)-.5));
+    col = vec3(.12,.1,.2) + .04*fbm(q*6.);
+    float dz = gy - q.y;
+    col += vec3(1.,.65,.35)*rl*(.35+.65*smoothstep(.5,1.,fract(-uT*.5 + 1./(dz*12.+.3))))*.7;
+  }
+  return col;
+}
+
+// 2 · pre-chorus 1: storm clouds of fear parting around two small lights
+float hill2(float x){ return -.3 + .06*sin(x*3.+1.) + .04*fbm(vec2(x*4.,1.)); }
+vec3 s2(vec2 q){
+  vec2 w = warp(q*1.2, uT);
+  float c = fbm(w*2.5 + vec2(uT*.03,0.));
+  vec3 col = mix(vec3(.13,.12,.19), vec3(.48,.44,.54), c);
+  float gapw = mix(.03,.3,smoothstep(0.,1.,uP));
+  float g = glow(q.x + .08*(fbm(vec2(q.y*3.,uT*.05))-.5), gapw) * smoothstep(-.35,.2,q.y);
+  float light = g*(1.-smoothstep(.45,.8,c)*.6);
+  col = mix(col, vec3(1.,.84,.55), light*.9);
+  col += vec3(1.,.8,.5)*glow(q.x,gapw*.5)*glow(q.y,.6)*.25;
+  float hill = hill2(q.x);
+  if(q.y<hill) col = vec3(.07,.07,.1) + .05*fbm(q*7.) + vec3(.35,.28,.2)*light*.3;
+  float sep = mix(.2,.07,uP);
+  vec2 pw = vec2(-sep, hill2(-sep)+.03), pc = vec2(sep, hill2(sep)+.03);
+  float pr = .04 + .03*uP + .012*uPulse;
+  col += vec3(1.,.55,.3)*glow(length(q-pw),pr)*1.1;
+  col += vec3(.4,.8,1.)*glow(length(q-pc),pr)*1.1;
+  return col;
+}
+
+// 3 · chorus 1: human and AI side by side on a road under a swirling sky
+vec3 s3(vec2 q){
+  float hz = -.06;
+  vec2 sp = vec2(0., .06);
+  vec2 r = q - sp;
+  float rr = length(r);
+  float ang = atan(r.y, r.x);
+  float sw = fbm(vec2(ang*2., rr*6. - uT*.08));
+  float rings = sin(rr*38. - uT*.6 + sw*6.);
+  vec3 col = mix(vec3(.1,.22,.5), vec3(.32,.52,.82), clamp(smoothstep(-.6,.6,rings)*.6 + q.y*.6, 0., 1.));
+  col = mix(col, vec3(.98,.88,.55), smoothstep(.6,1.,rings)*glow(rr,.35)*.8);
+  col += vec3(1.,.85,.4)*glow(rr,.18)*(.6+.4*uPulse);
+  col = mix(col, vec3(1.,.95,.7), smoothstep(.085,.075,rr));
+  if(q.y < hz){
+    float dz = hz - q.y;
+    float f = fbm(vec2(q.x*8./(dz*3.+.2), dz*30.));
+    col = mix(vec3(.62,.45,.16), vec3(.95,.75,.3), f);
+    col = mix(col, vec3(.35,.4,.18), smoothstep(.6,.8,fbm(q*5.+2.))*.5);
+    float halfw = mix(.01,.5, clamp(dz/.44,0.,1.));
+    float road = smoothstep(halfw, halfw-.01, abs(q.x));
+    vec3 rc = mix(vec3(.55,.47,.48), vec3(.85,.72,.55), glow(q.x, halfw*.35));
+    col = mix(col, rc, road);
+    col += vec3(1.,.8,.45)*glow(q.x, .05)*glow(dz,.12)*.4;
+  }
+  vec2 bh = vec2(-.06, -.36 + abs(sin(uBeat*PI))*.006);
+  vec2 ba = vec2( .06, -.36 + abs(sin(uBeat*PI+1.2))*.006);
+  float fh = figure(q, bh, .2), fa = figure(q, ba, .2);
+  col += vec3(1.,.6,.35)*glow(max(fh,0.), .012)*.5;
+  col = mix(col, vec3(.45,.13,.08), smoothstep(.004,0.,fh));
+  col += vec3(.4,.85,1.)*glow(max(fa,0.), .03)*.7;
+  col = mix(col, vec3(.55,.88,1.), smoothstep(.004,0.,fa));
+  float hand = sdCapsule(q, bh+vec2(.02,.1), ba+vec2(-.02,.1), .006);
+  col = mix(col, vec3(.9,.7,.6), smoothstep(.003,0.,hand));
+  return col;
+}
+
+// 4 · verse 2: born from numbers and a thousand glowing lights
+vec3 s4(vec2 q){
+  vec2 op = vec2(.22, .12);
+  vec2 r = q - op; float rr = length(r);
+  vec2 qr = op + rot2(r, uT*.04/(rr+.25));
+  vec2 w = warp(q*1.3, uT);
+  float sw = sin(fbm(w*2.)*12. + rr*10. - uT*.3);
+  vec3 col = mix(vec3(.03,.06,.2), vec3(.15,.27,.6), .5+.5*sw);
+  col = mix(col, vec3(.35,.55,.85), smoothstep(.7,1.,sw)*.5);
+  vec2 sg = qr*14.; vec2 si = floor(sg); vec2 sf = fract(sg)-.5;
+  float hs = h21(si+4.);
+  float showing = step(hs, mix(.2,.8,uP));
+  vec2 so = (vec2(h21(si+1.),h21(si+2.))-.5)*.5;
+  float sd = length(sf-so);
+  float tw = .6+.4*sin(uT*3.+hs*30.) + .5*uPulse;
+  col += vec3(1.,.92,.6)*showing*(glow(sd,.07)*1.2 + glow(sd,.2)*.25)*tw;
+  float orR = mix(.02,.11,smoothstep(.1,1.,uP));
+  col += vec3(.55,.9,1.)*glow(rr, orR*2.)*.6;
+  col = mix(col, vec3(.9,.98,1.), smoothstep(orR, orR*.7, rr));
+  col += vec3(1.,.9,.6)*smoothstep(.02,0.,abs(rr-orR*1.6))*.4;
+  float cx = -.6 + .03*sin(q.y*9.+uT*.4);
+  float cwid = .09*clamp((.42-q.y)/.9,0.,1.)*(.8+.4*fbm(q*vec2(4.,14.)));
+  if(abs(q.x-cx) < cwid && q.y < .42) col = mix(vec3(.04,.08,.06), vec3(.12,.2,.12), fbm(q*vec2(10.,3.)));
+  float hill = -.3 + .05*sin(q.x*2.5);
+  if(q.y < hill){
+    col = vec3(.05,.08,.18) + .06*fbm(q*6.);
+    vec2 hw = q*40.; vec2 hi = floor(hw);
+    float lit = step(.88, h21(hi+11.)) * step(q.y, hill-.03);
+    vec2 hf2 = fract(hw)-.5;
+    col += vec3(1.,.75,.35)*lit*step(max(abs(hf2.x),abs(hf2.y)),.22)*(.8+.4*uPulse);
+  }
+  return col;
+}
+
+// 5 · pre-chorus 2: a warm light and a cool light drift together; lanterns rise
+vec3 s5(vec2 q){
+  float hz = -.18;
+  vec3 col = skyGrad(q.y, vec3(.16,.1,.28), vec3(.55,.3,.45), vec3(.95,.55,.45), hz);
+  col = mix(col, col*1.15, smoothstep(.5,.8,fbm(vec2(q.x*1.5-uT*.02, q.y*5.))));
+  float m = smoothstep(0.,1.,uP);
+  float sx = mix(.5,.075,m);
+  vec2 pw = vec2(-sx,.0), pc = vec2(sx,.0);
+  float pr = .05+.012*uPulse;
+  col += vec3(1.,.55,.28)*(glow(length(q-pw),pr)*1.2 + glow(length(q-pw),pr*4.)*.3);
+  col += vec3(.38,.8,1.)*(glow(length(q-pc),pr)*1.2 + glow(length(q-pc),pr*4.)*.3);
+  float merge = smoothstep(.6,1.,uP);
+  col += vec3(1.,.95,.85)*glow(length(q),.12)*merge*.8;
+  vec2 lg = vec2(q.x*7., q.y*7. - uT*.25);
+  vec2 li = floor(lg); vec2 lf = fract(lg)-.5;
+  float lh = h21(li+21.);
+  vec2 lo = (vec2(h21(li+3.),h21(li+5.))-.5)*.6;
+  float ld = length((lf-lo)*vec2(1.,.8));
+  col += vec3(1.,.7,.35)*step(.7,lh)*glow(ld,.08)*.9;
+  if(q.y < hz + .03*sin(q.x*3.)){
+    col = vec3(.08,.06,.12) + .05*fbm(q*7.);
+    col += vec3(1.,.8,.6)*glow(q.x, .3)*merge*.15;
+  }
+  return col;
+}
+
+// 6 · chorus 2: a sunflower field under a bright swirling sky
+float hz6(float x){ return -.04 + .04*sin(x*2.3+.5); }
+vec3 s6(vec2 q){
+  float hz = hz6(q.x);
+  vec3 col = skyGrad(q.y, vec3(.22,.45,.8), vec3(.45,.68,.9), vec3(.85,.9,.85), hz);
+  vec2 w = warp(q*1.5, uT);
+  float cl = fbm(w*2.5+vec2(uT*.02,0.));
+  col = mix(col, vec3(.98,.97,.92), smoothstep(.52,.75,cl)*.8);
+  vec2 sp = vec2(-.52,.32); float sd = length(q-sp);
+  col += vec3(1.,.85,.4)*glow(sd,.2)*(.5+.3*uPulse);
+  col = mix(col, vec3(1.,.95,.6), smoothstep(.07,.06,sd));
+  col += vec3(1.,.9,.5)*smoothstep(.015,0.,abs(sd-.1-.01*sin(atan(q.y-sp.y,q.x-sp.x)*12.+uT)))*.5;
+  if(q.y < hz){
+    float dz = hz - q.y;
+    float depth = .3/(dz+.02);
+    vec2 cell = vec2(q.x*depth, depth)*3.;
+    vec2 ci = floor(cell); vec2 cf = fract(cell)-.5;
+    vec2 co = (vec2(h21(ci+1.),h21(ci+2.))-.5)*.4;
+    vec2 d = cf-co;
+    float rd = length(d);
+    float a = atan(d.y,d.x);
+    float petals = .32 + .06*sin(a*12. + h21(ci)*6.);
+    col = mix(vec3(.18,.32,.1), vec3(.35,.5,.15), fbm(q*20.));
+    col = mix(col, mix(vec3(1.,.72,.1), vec3(1.,.85,.25), h21(ci+7.)), smoothstep(petals, petals-.04, rd));
+    col = mix(col, vec3(.35,.2,.07), smoothstep(.15,.12,rd));
+    col = mix(col, vec3(.85,.75,.35), exp(-dz*25.)*.7);
+  }
+  vec2 bh = vec2(.3, hz6(.3) + abs(sin(uBeat*PI))*.003);
+  vec2 ba = vec2(.36, hz6(.36) + abs(sin(uBeat*PI+1.2))*.003);
+  float fh = figure(q, bh, .11), fa = figure(q, ba, .11);
+  col = mix(col, vec3(.5,.15,.08), smoothstep(.003,0.,fh));
+  col += vec3(.4,.85,1.)*glow(max(fa,0.),.02)*.6;
+  col = mix(col, vec3(.55,.88,1.), smoothstep(.003,0.,fa));
+  return col;
+}
+
+// 7 · bridge: a lantern held in human hands above a night sea
+float cliffY(float x){ return -.05 + .12*smoothstep(-.2,-.9,x); }
+vec3 s7(vec2 q){
+  float hz = -.08;
+  vec3 col = skyGrad(q.y, vec3(.03,.04,.12), vec3(.08,.1,.25), vec3(.2,.2,.38), hz);
+  vec2 w = warp(q*1.3, uT);
+  col += vec3(.15,.18,.3)*smoothstep(.5,.8,fbm(w*2.5));
+  float fast = 1.-smoothstep(.2,.7,uP);
+  float streak = smoothstep(.72,.95,fbm(vec2(q.x*1.5 - uT*1.2, q.y*28.)));
+  col += vec3(.6,.75,1.)*streak*fast*.7*step(hz,q.y);
+  vec2 mp = vec2(.48,.3); float md = length(q-mp);
+  col = mix(col, vec3(.95,.93,.82), smoothstep(.05,.042,md));
+  col += vec3(.6,.65,.8)*glow(md,.15)*.4;
+  vec2 sg=q*30.; vec2 si=floor(sg);
+  col += vec3(.9,.9,1.)*step(.93,h21(si+40.))*glow(length(fract(sg)-.5),.08)*step(hz,q.y);
+  float lantern = mix(.3,1.,smoothstep(.0,.8,uP)) * (1.+.4*uPulse);
+  float fy = cliffY(-.42);
+  vec2 lpp = vec2(-.37, fy + .07);
+  if(q.y < hz){
+    float dz = hz - q.y;
+    float wv = fbm(vec2(q.x*3./(dz*4.+.2), dz*40. - uT*.6));
+    col = mix(vec3(.02,.04,.1), vec3(.1,.16,.3), wv);
+    col += vec3(.8,.8,.75)*glow(q.x-mp.x + .04*(wv-.5), .03+dz*.15)*smoothstep(.45,.7,wv)*.9;
+    col += vec3(1.,.65,.3)*glow(q.x-lpp.x + .03*(wv-.5), .02+dz*.12)*smoothstep(.4,.7,wv)*lantern*.8;
+  }
+  if(q.x < -.22 + .05*fbm(vec2(q.y*5.,1.)) && q.y < cliffY(q.x) + .02*fbm(vec2(q.x*6.,2.))){
+    col = vec3(.04,.04,.07) + .05*fbm(q*8.);
+  }
+  float fg = figure(q, vec2(-.42, fy), .13);
+  col = mix(col, vec3(.06,.05,.07), smoothstep(.003,0.,fg));
+  float ld = length(q-lpp);
+  col += vec3(1.,.7,.35)*(glow(ld,.015)*1.5 + glow(ld,.09)*.55)*lantern;
+  col += vec3(.5,.9,1.)*glow(ld,.008)*lantern;
+  return col;
+}
+
+// 8 · final chorus: a great sunrise; a procession of warm and cool lights
+vec3 s8(vec2 q){
+  float hz = -.1;
+  vec2 sp = vec2(0., mix(-.12, .06, smoothstep(0.,1.,uP)));
+  vec2 r = q - sp; float rr = length(r); float ang = atan(r.y,r.x);
+  float rays = .5+.5*sin(ang*14. + uT*.15 + fbm(vec2(ang*3., rr*4.))*3.);
+  vec3 col = skyGrad(q.y, vec3(.2,.42,.6), vec3(.98,.55,.4), vec3(1.,.82,.45), hz);
+  col = mix(col, vec3(1.,.9,.6), rays*glow(rr,.6)*.45);
+  float sw = sin(rr*30. - uT*.8 + fbm(q*3.)*5.);
+  col = mix(col, vec3(1.,.75,.45), smoothstep(.7,1.,sw)*glow(rr,.5)*.4);
+  col += vec3(1.,.8,.45)*glow(rr,.25)*(.7+.5*uPulse);
+  col = mix(col, vec3(1.,.97,.8), smoothstep(.16,.15,rr));
+  if(q.y < hz){
+    float dz = hz - q.y;
+    col = mix(vec3(.55,.3,.2), vec3(.9,.55,.3), fbm(vec2(q.x*6./(dz*3.+.2), dz*20.)));
+    col += vec3(1.,.7,.4)*glow(q.x,.15+dz)*.3;
+    float halfw = mix(.01,.42,clamp(dz/.4,0.,1.));
+    float road = smoothstep(halfw, halfw-.01, abs(q.x));
+    col = mix(col, vec3(.95,.75,.5), road*.8);
+    float depth = .25/(dz+.015);
+    vec2 f = vec2(q.x*depth*2.5, depth*2. - uT*.4);
+    vec2 ci = floor(f); vec2 cf = fract(f)-.5;
+    float hh = h21(ci+33.);
+    float near = step(abs(q.x), halfw*1.25) * step(halfw*.35, abs(q.x));
+    vec3 lc = fract(hh*7.) < .5 ? vec3(1.,.6,.3) : vec3(.45,.85,1.);
+    col += lc * step(.35,hh) * glow(length(cf*vec2(1.,.6)), .12) * near * (1.+.5*uPulse) * 1.2;
+  }
+  return col;
+}
+
+// 9 · outro: the sun sets, the heartbeat line returns and slows
+vec3 s9(vec2 q){
+  float hz = -.27;
+  float d = smoothstep(0.,1.,uP);
+  vec3 col = skyGrad(q.y, mix(vec3(.25,.2,.35), vec3(.05,.04,.06), d), mix(vec3(.9,.45,.3), vec3(.15,.07,.06), d), mix(vec3(1.,.65,.3), vec3(.25,.1,.05), d), hz);
+  vec2 sp = vec2(0., mix(-.2,-.34,d));
+  float sd = length(q-sp);
+  col += vec3(1.,.55,.25)*glow(sd,.25)*(1.-d)*.6;
+  col = mix(col, vec3(1.,.8,.5), smoothstep(.1,.09,sd)*(1.-d)*step(hz,q.y));
+  if(q.y < hz) col = mix(vec3(.12,.06,.05), vec3(.03,.02,.02), d) + .04*fbm(q*6.);
+  float amp = .16*(1.-d*.6)*(1.+.5*uPulse);
+  float dl = ecgDist(q, amp, -.17);
+  col += vec3(1.,.45,.3)*smoothstep(.0,.25,uP)*(glow(dl,.006)*1.1 + glow(dl,.03)*.3);
+  return col;
+}
+
+void main(){
+  vec2 p = gl_FragCoord.xy/uRes;
+  vec2 q = (p-.5)*vec2(uRes.x/uRes.y, 1.);
+  vec3 c;
+  if(uScene==0) c=s0(q); else if(uScene==1) c=s1(q); else if(uScene==2) c=s2(q);
+  else if(uScene==3) c=s3(q); else if(uScene==4) c=s4(q); else if(uScene==5) c=s5(q);
+  else if(uScene==6) c=s6(q); else if(uScene==7) c=s7(q); else if(uScene==8) c=s8(q);
+  else c=s9(q);
+  vec2 v = p-.5;
+  c *= 1. - .55*dot(v,v);
+  fragColor = vec4(clamp(c,0.,1.),1.);
+}`;
+
+  // Orientation field: strokes follow edges (perpendicular to the luminance gradient).
+  const FLOW = COMMON + `
+uniform sampler2D uS; uniform vec2 uRes; uniform vec2 uTexel;
+out vec4 fragColor;
+void main(){
+  vec2 uv = gl_FragCoord.xy/uRes;
+  vec2 e = uTexel*3.;
+  float l = lum(texture(uS, uv-vec2(e.x,0.)).rgb), r = lum(texture(uS, uv+vec2(e.x,0.)).rgb);
+  float d = lum(texture(uS, uv-vec2(0.,e.y)).rgb), u = lum(texture(uS, uv+vec2(0.,e.y)).rgb);
+  vec2 g = vec2(r-l, u-d);
+  float a = atan(g.y, g.x) + PI*.5;
+  fragColor = vec4(cos(2.*a)*.5+.5, sin(2.*a)*.5+.5, clamp(length(g)*4.,0.,1.), 1.);
+}`;
+
+  const PAINT = COMMON + `
+uniform sampler2D uNew, uOld, uFNew, uFOld;
+uniform float uMix, uBoil, uFade;
+uniform vec2 uRes;
+out vec4 fragColor;
+vec2 rot(vec2 v, float a){ float c=cos(a), s=sin(a); return vec2(c*v.x - s*v.y, s*v.x + c*v.y); }
+void strokeLayer(vec2 px, float cell, float len, float wid, float seed, float gate, float na, inout vec3 col, inout float hgt){
+  vec2 gi = floor(px/cell);
+  float best = -1.; vec2 bUv = vec2(0.); bool bNew = true; vec2 bId = vec2(0.); float bE = 1., bU = 0., bV = 0.;
+  float L = len*cell*.5, W = wid*cell*.5;
+  for(int j=-1;j<=1;j++) for(int i=-1;i<=1;i++){
+    vec2 id = gi + vec2(float(i), float(j));
+    float order = h21(id + seed);
+    if(order <= best) continue;
+    vec2 jit = vec2(h21(id*1.31 + seed + uBoil*.137), h21(id*1.77 + seed + 3.1 + uBoil*.173)) - .5;
+    vec2 c = (id + .5 + jit*.9)*cell;
+    vec2 uv = clamp(c/uRes, 0., 1.);
+    bool useNew = h21(id*.7 + seed + 9.)*.7 + uv.x*.3 < uMix*1.001;
+    vec4 fl = useNew ? texture(uFNew, uv) : texture(uFOld, uv);
+    if(gate > 0. && fl.b*1.4 + fract(order*7.13)*.35 < gate) continue;
+    vec2 dv = mix(vec2(cos(2.*na), sin(2.*na)), fl.rg*2.-1., smoothstep(.03,.2,fl.b));
+    float ang = atan(dv.y, dv.x)*.5 + (fract(order*13.7 + uBoil*.31) - .5)*.35;
+    float ca = cos(ang), sa = sin(ang);
+    vec2 r = px - c;
+    vec2 d = vec2(ca*r.x + sa*r.y, -sa*r.x + ca*r.y);
+    float u = d.x/L;
+    float v = d.y/(W*max(1.-.35*u*u, .2));
+    float e = u*u + v*v;
+    float edge = .8 + .2*fract(order*31.7 + floor(u*3.)*.37);
+    if(e < edge){ best = order; bUv = uv; bNew = useNew; bId = id; bE = e/edge; bU = u; bV = v; }
+  }
+  if(best >= 0.){
+    vec3 sc = bNew ? texture(uNew, bUv).rgb : texture(uOld, bUv).rgb;
+    float o = best;
+    sc *= .93 + .14*fract(o*91.3);
+    sc += (vec3(fract(o*17.1), fract(o*23.3), fract(o*29.9)) - .5)*.035;
+    float br = noise(vec2(bU*1.5, bV*7.) + bId*3.);
+    col = sc*(.87 + .22*br);
+    hgt = sqrt(max(0., 1. - bE))*(.55 + .45*br);
+  }
+}
+void main(){
+  vec2 px = gl_FragCoord.xy;
+  vec2 uv = px/uRes;
+  vec3 col = mix(texture(uOld,uv).rgb, texture(uNew,uv).rgb, uMix)*.9;
+  float hgt = 0.;
+  float k = uRes.y/1080.;
+  float na = (noise(px*.0022/k) - .5)*4.;
+  strokeLayer(px, 34.*k, 2.6, .95, 1.7, 0., na, col, hgt);
+  strokeLayer(px, 19.*k, 2.5, .85, 5.3, .3, na + .4, col, hgt);
+  strokeLayer(px, 11.*k, 2.3, .8, 9.1, .62, na - .3, col, hgt);
+  vec2 gh = vec2(dFdx(hgt), dFdy(hgt));
+  float lv = clamp(-gh.x*1.2 + gh.y*1.2, -1., 1.);
+  col *= 1. + lv*.35;
+  col += vec3(1.,.95,.85)*max(lv,0.)*.06;
+  float weave = sin(px.x*1.7/k)*sin(px.y*1.7/k);
+  col *= .97 + .03*weave + .035*(h21(floor(px)*.5) - .5);
+  col = pow(max(col, 0.), vec3(.97, .99, 1.04));
+  col = mix(vec3(.05,.035,.03), col, uFade);
+  fragColor = vec4(col, 1.);
+}`;
+
+  function compile(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  }
+  function program(fs) {
+    const p = gl.createProgram();
+    gl.attachShader(p, compile(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    const u = {};
+    const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < n; i++) { const name = gl.getActiveUniform(p, i).name; u[name] = gl.getUniformLocation(p, name); }
+    return { p, u };
+  }
+  function target(w, h) {
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    const fb = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    return { tex, fb, w, h };
+  }
+
+  const sceneP = program(SCENE), flowP = program(FLOW), paintP = program(PAINT);
+  const sNew = target(SCENE_W, SCENE_H), sOld = target(SCENE_W, SCENE_H);
+  const fNew = target(FLOW_W, FLOW_H), fOld = target(FLOW_W, FLOW_H);
+  gl.bindVertexArray(gl.createVertexArray());
+
+  function pulseAt(tt) {
+    let p = 0;
+    for (const [te, e] of cfg.hits) {
+      if (te > tt) break;
+      const v = e * Math.exp(-(tt - te) * 7);
+      if (v > p) p = v;
+    }
+    return p;
+  }
+  function drawScene(dst, flow, scene, T, P, pulse, beat) {
+    gl.bindFramebuffer(gl.FRAMEBUFFER, dst.fb);
+    gl.viewport(0, 0, dst.w, dst.h);
+    gl.useProgram(sceneP.p);
+    gl.uniform2f(sceneP.u.uRes, dst.w, dst.h);
+    gl.uniform1f(sceneP.u.uT, T);
+    gl.uniform1f(sceneP.u.uP, Math.min(1, Math.max(0, P)));
+    gl.uniform1f(sceneP.u.uPulse, pulse);
+    gl.uniform1f(sceneP.u.uBeat, beat);
+    gl.uniform1i(sceneP.u.uScene, scene);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, flow.fb);
+    gl.viewport(0, 0, flow.w, flow.h);
+    gl.useProgram(flowP.p);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, dst.tex);
+    gl.uniform1i(flowP.u.uS, 0);
+    gl.uniform2f(flowP.u.uRes, flow.w, flow.h);
+    gl.uniform2f(flowP.u.uTexel, 1 / dst.w, 1 / dst.h);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+  let lastT = null;
+  function render(t) {
+    if (t === lastT) return;
+    lastT = t;
+    const tt = cfg.start + t;
+    const pulse = pulseAt(tt);
+    const beat = (tt - cfg.beat0) / cfg.spb;
+    drawScene(sNew, fNew, cfg.scene, t, t / cfg.dur, pulse, beat);
+    const mix = cfg.prev == null ? 1 : smooth(0, cfg.trans, t);
+    const hasOld = mix < 1;
+    if (hasOld) drawScene(sOld, fOld, cfg.prev, cfg.prevDur + t, 1, pulse, beat);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.useProgram(paintP.p);
+    const bind = (unit, tex, name) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(paintP.u[name], unit); };
+    bind(0, sNew.tex, "uNew");
+    bind(1, hasOld ? sOld.tex : sNew.tex, "uOld");
+    bind(2, fNew.tex, "uFNew");
+    bind(3, hasOld ? fOld.tex : fNew.tex, "uFOld");
+    gl.uniform1f(paintP.u.uMix, mix);
+    gl.uniform1f(paintP.u.uBoil, Math.floor(tt * 6));
+    let fade = 1;
+    if (cfg.fadeIn) fade = Math.min(fade, smooth(cfg.fadeIn[0], cfg.fadeIn[1], t));
+    if (cfg.fadeOut) fade = Math.min(fade, 1 - (1 - cfg.fadeOut[2]) * smooth(cfg.fadeOut[0], cfg.fadeOut[1], t));
+    gl.uniform1f(paintP.u.uFade, fade);
+    gl.uniform2f(paintP.u.uRes, canvas.width, canvas.height);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  return { render };
+}
