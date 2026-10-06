@@ -1,0 +1,100 @@
+{
+ "grammar": "viet_kinetic",
+ "duration": 13.5,
+ "fps": 30,
+ "width": 1920,
+ "height": 1080,
+ "cues": [
+  {
+   "at": 0.0,
+   "kind": "page",
+   "text": "He / She / It",
+   "sub": "Ngôi thứ ba số ít thì thêm -s / -es",
+   "data": {
+    "pal": [
+     "#FFD23F",
+     "#111111",
+     "#D7260F"
+    ],
+    "label": "PRESENT SIMPLE",
+    "key": "thêm -s / -es"
+   }
+  },
+  {
+   "at": 2.5,
+   "kind": "page",
+   "text": "I play",
+   "sub": "Tôi chơi — động từ giữ nguyên",
+   "data": {
+    "pal": [
+     "#F4EFE6",
+     "#111111",
+     "#E8350F"
+    ],
+    "label": "I · you · we · they",
+    "key": "giữ nguyên"
+   }
+  },
+  {
+   "at": 4.3,
+   "kind": "page",
+   "text": "He play",
+   "sub": "Anh ấy chơi — thêm -s",
+   "data": {
+    "pal": [
+     "#14213D",
+     "#FFFFFF",
+     "#FFD23F"
+    ],
+    "end": "s",
+    "label": "he · she · it",
+    "key": "thêm -s"
+   }
+  },
+  {
+   "at": 6.7,
+   "kind": "page",
+   "text": "I watch",
+   "sub": "Tôi xem — động từ giữ nguyên",
+   "data": {
+    "pal": [
+     "#F4EFE6",
+     "#111111",
+     "#E8350F"
+    ],
+    "label": "I · you · we · they",
+    "key": "giữ nguyên"
+   }
+  },
+  {
+   "at": 8.5,
+   "kind": "page",
+   "text": "She watch",
+   "sub": "Cô ấy xem — thêm -es",
+   "data": {
+    "pal": [
+     "#14213D",
+     "#FFFFFF",
+     "#FFD23F"
+    ],
+    "end": "es",
+    "label": "he · she · it",
+    "key": "thêm -es"
+   }
+  },
+  {
+   "at": 11.0,
+   "kind": "page",
+   "text": "+ s / + es",
+   "sub": "Tận cùng -ch, -sh, -s, -x, -o thì thêm -es",
+   "data": {
+    "pal": [
+     "#FFD23F",
+     "#111111",
+     "#D7260F"
+    ],
+    "key": "-ch, -sh, -s, -x, -o"
+   }
+  }
+ ]
+}

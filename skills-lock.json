@@ -25,6 +25,12 @@
       "skillPath": "skills/general-video/SKILL.md",
       "computedHash": "9c568a68abb3a72b4e3a367f25e57b22bd0d5ad37bd234e0d71b4e6eb0573678"
     },
+    "huashu-art-motion": {
+      "source": "alchaincyf/huashu-art-motion",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "889fe089bd09498c2275861502ae82c6074aac06471dbda8fc54aab917de3adb"
+    },
     "hyperframes": {
       "source": "heygen-com/hyperframes",
       "sourceType": "github",

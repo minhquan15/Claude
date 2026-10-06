@@ -1,0 +1,10 @@
+{
+  "grammar": "viet_whiteboard",
+  "duration": 14.5, "fps": 30, "width": 1920, "height": 1080,
+  "cues": [
+    {"at": 0.2, "kind": "title", "text": "Present Simple", "sub": "he / she / it  +  s / es"},
+    {"at": 3.3, "kind": "row", "data": {"base": "I play", "baseVi": "Tôi chơi", "subj": "He", "stem": "play", "end": "s", "vi": "Anh ấy chơi"}},
+    {"at": 7.0, "kind": "row", "data": {"base": "I watch", "baseVi": "Tôi xem", "subj": "She", "stem": "watch", "end": "es", "vi": "Cô ấy xem"}},
+    {"at": 10.7, "kind": "note", "text": "Tiếng Việt giữ nguyên động từ. Tiếng Anh: he/she/it thêm -s / -es."}
+  ]
+}

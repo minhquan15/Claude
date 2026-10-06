@@ -1,0 +1,41 @@
+{
+ "project": "/home/user/Claude/grammar-clips/scripts/engine",
+ "segments": [
+  {
+   "id": "specs",
+   "window_lt": [
+    0.0,
+    13.48
+   ],
+   "frames": 404,
+   "ms_mean": 4.3,
+   "ms_max": 8.9,
+   "ms_cold": 4.7,
+   "deterministic": true,
+   "det_maxdiff": 0,
+   "motion_pct": 3.47,
+   "motion_max": 84.32,
+   "still_pairs_pct": 61.0,
+   "spike_ratio": 1686.3,
+   "spikes_at_lt": [
+    2.341,
+    2.375,
+    2.408,
+    4.148,
+    4.181,
+    6.556,
+    6.589,
+    8.329,
+    8.362,
+    8.396,
+    10.804,
+    10.838,
+    10.871
+   ],
+   "framing": [],
+   "text_tracked": 1554
+  }
+ ],
+ "transitions": [],
+ "page_errors": []
+}
