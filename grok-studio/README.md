@@ -28,3 +28,9 @@ Nếu API báo lỗi về `aspect_ratio` / `resolution` / `n`, để các ô đ�
 
 Lưu ý gói miễn phí: dịch vụ ngủ sau ~15 phút không dùng (lần mở đầu chờ ~1 phút), và ổ đĩa không giữ lại. File trong `outputs/` mất khi dịch vụ khởi động lại, nên hãy bấm "Tải về" ngay sau khi tạo.
 Khi `HOST` không phải localhost, server từ chối chạy nếu chưa đặt `APP_PASSWORD`.
+
+## Kéo dài video
+
+Mỗi video trong lịch sử có nút **Kéo dài**. Bấm vào, nhập điều xảy ra tiếp theo và thời lượng phần thêm (2–10s), rồi bấm Tạo. App gửi video gốc tới `POST /v1/videos/extensions` (model `grok-imagine-video`). Kết quả là một video mới gồm cả đoạn gốc lẫn đoạn nối thêm. Bạn có thể kéo dài tiếp video đó.
+
+Giới hạn của xAI: video gốc phải là .mp4 dài 2–15s, và kết quả giữ tỉ lệ khung hình của video gốc, tối đa 720p. Vì vậy video đã kéo dài quá 15s thì không kéo dài tiếp được.

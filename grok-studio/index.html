@@ -29,6 +29,9 @@ textarea{min-height:110px;resize:vertical}
 .item img,.item video{width:100%;display:block}
 .item .m{padding:8px;font-size:12px;color:var(--mut)}
 .item a{color:var(--ac)}
+.item button{margin-left:6px;background:none;border:1px solid var(--ac);color:var(--ac);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:12px}
+#extBox{display:none;margin-top:10px;padding:8px;border:1px dashed var(--ac);border-radius:8px;font-size:13px}
+#extBox video{width:100%;margin-top:6px;border-radius:6px}
 details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
 #prev{max-width:100%;max-height:120px;margin-top:6px;border-radius:8px;display:none}
 </style>
@@ -38,6 +41,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
 <section class="card">
   <h1>Grok Studio</h1>
   <div class="tabs"><button id="tImage" class="on">Ảnh</button><button id="tVideo">Video</button></div>
+  <div id="extBox">Đang kéo dài video: <b id="extName"></b> <button id="extCancel" type="button">Huỷ</button><video id="extPrev" muted controls></video></div>
   <label>Prompt</label>
   <textarea id="prompt" placeholder="Mô tả thứ bạn muốn tạo..."></textarea>
   <label id="refLabel">Ảnh tham chiếu (tuỳ chọn: sửa ảnh / ảnh → video)</label>
@@ -48,16 +52,18 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
   </div>
   <div class="row" id="vidOpts" style="display:none">
     <div><label>Thời lượng (giây)</label><input id="duration" type="number" min="1" max="15" value="8"></div>
+    <div><label id="durHint" style="font-size:11px">Video mới: 1–15s. Kéo dài: 2–10s.</label></div>
   </div>
   <div class="row">
     <div><label>Tỉ lệ khung hình</label>
       <select id="ar"><option value="">Mặc định</option><option>1:1</option><option>16:9</option><option>9:16</option><option>4:3</option><option>3:4</option></select></div>
     <div><label>Độ phân giải</label>
-      <select id="res"><option value="">Mặc định</option><option>480p</option><option>720p</option><option>1k</option><option>2k</option></select></div>
+      <select id="res"><option value="">Mặc định</option><option>480p</option><option>720p</option><option>1080p</option><option>1k</option><option>2k</option></select></div>
   </div>
   <details><summary>Model</summary>
     <label>Model ảnh</label><input id="mImg" value="grok-imagine-image-2.0">
     <label>Model video</label><input id="mVid" value="grok-imagine-video-1.5">
+    <label>Model kéo dài video</label><input id="mExt" value="grok-imagine-video">
   </details>
   <button class="go" id="go">Tạo</button>
   <div id="status"></div>
@@ -69,7 +75,11 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
 </main>
 <script>
 const $=id=>document.getElementById(id);
-let mode='image',refData=null;
+let mode='image',refData=null,extFile=null;
+function setExt(f){extFile=f;$('extBox').style.display=f?'block':'none';$('extName').textContent=f||'';
+  $('extPrev').src=f?'/outputs/'+f:'';if(f){setMode('video');$('prompt').value='';$('prompt').placeholder='Mô tả điều xảy ra tiếp theo...';$('duration').value=6;window.scrollTo({top:0,behavior:'smooth'})}
+  else $('prompt').placeholder='Mô tả thứ bạn muốn tạo...'}
+$('extCancel').onclick=()=>setExt(null);
 function setMode(m){mode=m;$('tImage').classList.toggle('on',m=='image');$('tVideo').classList.toggle('on',m=='video');
   $('imgOpts').style.display=m=='image'?'':'none';$('vidOpts').style.display=m=='video'?'':'none';}
 $('tImage').onclick=()=>setMode('image');$('tVideo').onclick=()=>setMode('video');
@@ -82,6 +92,7 @@ function card(kind,prompt,file,time){
   d.innerHTML=(kind=='video'?`<video controls loop src="${url}"></video>`:`<img src="${url}" loading="lazy">`)+
    `<div class="m"></div>`;
   d.querySelector('.m').append(prompt.slice(0,120)+' ',Object.assign(document.createElement('a'),{href:url,download:file,textContent:'Tải về'}));
+  if(kind=='video')d.querySelector('.m').append(Object.assign(document.createElement('button'),{textContent:'Kéo dài',onclick:()=>setExt(file)}));
   return d}
 function show(kind,prompt,files){files.forEach(f=>$('grid').prepend(card(kind,prompt,f)))}
 async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -95,8 +106,9 @@ $('go').onclick=async()=>{
       const j=await post('/api/image',{...common,model:$('mImg').value,n:$('n').value});
       show('image',prompt,j.files);st('Xong.');
     }else{
-      const model=$('mVid').value;
-      const s=await post('/api/video',{...common,model,duration:$('duration').value});
+      const model=extFile?$('mExt').value:$('mVid').value;
+      const s=extFile?await post('/api/video/extend',{prompt,model,file:extFile,duration:$('duration').value})
+                     :await post('/api/video',{...common,model,duration:$('duration').value});
       if(!s.request_id)throw new Error('Không có request_id: '+JSON.stringify(s.raw));
       const t0=Date.now();
       while(true){
@@ -104,7 +116,7 @@ $('go').onclick=async()=>{
         st(`Đang tạo video... ${Math.round((Date.now()-t0)/1000)}s`);
         const r=await fetch(`/api/video/${s.request_id}?prompt=${encodeURIComponent(prompt)}&model=${encodeURIComponent(model)}`);
         const j=await r.json();if(!r.ok)throw new Error(j.error);
-        if(j.status=='done'){show('video',prompt,j.files);st('Xong.');break}
+        if(j.status=='done'){show('video',prompt,j.files);st('Xong.');setExt(null);break}
         if(j.error)throw new Error('Video '+j.status+': '+j.error);
       }
     }

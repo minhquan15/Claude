@@ -114,6 +114,18 @@ def do_video_start(p):
     return {"request_id": res.get("request_id"), "raw": res}
 
 
+def do_video_extend(p):
+    src = OUT / Path(p.get("file", "")).name
+    if not src.is_file() or src.suffix != ".mp4":
+        raise RuntimeError("Không tìm thấy video gốc trên server (có thể đã mất sau khi khởi động lại).")
+    uri = "data:video/mp4;base64," + base64.b64encode(src.read_bytes()).decode()
+    body = {"model": p["model"], "prompt": p["prompt"], "video": {"url": uri}}
+    if p.get("duration"):
+        body["duration"] = int(p["duration"])
+    res = xai("POST", "/videos/extensions", body)
+    return {"request_id": res.get("request_id"), "raw": res}
+
+
 def do_video_poll(rid, prompt, model):
     res = xai("GET", f"/videos/{rid}")
     status = res.get("status", "pending")
@@ -194,6 +206,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, do_image(p))
             if self.path == "/api/video":
                 return self.send(200, do_video_start(p))
+            if self.path == "/api/video/extend":
+                return self.send(200, do_video_extend(p))
             self.send(404, {"error": "not found"})
         except Exception as e:
             self.send(500, {"error": str(e)})
