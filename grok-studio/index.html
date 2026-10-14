@@ -33,6 +33,9 @@ textarea{min-height:110px;resize:vertical}
 #extBox{display:none;margin-top:10px;padding:8px;border:1px dashed var(--ac);border-radius:8px;font-size:13px}
 #extBox video{width:100%;margin-top:6px;border-radius:6px}
 details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
+.pick{display:inline-block;padding:10px 14px;border:1px solid var(--ac);color:var(--ac);border-radius:8px;cursor:pointer;font-size:14px}
+.pick input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+#refClear{display:none;margin-left:8px;background:none;border:0;color:var(--mut);text-decoration:underline;cursor:pointer}
 #prev{max-width:100%;max-height:120px;margin-top:6px;border-radius:8px;display:none}
 </style>
 </head>
@@ -45,7 +48,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
   <label>Prompt</label>
   <textarea id="prompt" placeholder="Mô tả thứ bạn muốn tạo..."></textarea>
   <label id="refLabel">Ảnh tham chiếu (tuỳ chọn: sửa ảnh / ảnh → video)</label>
-  <input type="file" id="ref" accept="image/*">
+  <label class="pick">📷 Chọn ảnh<input type="file" id="ref" accept="image/*"></label><button id="refClear" type="button">Bỏ ảnh</button>
   <img id="prev">
   <div class="row" id="imgOpts">
     <div><label>Số ảnh (1-10)</label><input id="n" type="number" min="1" max="10" value="1"></div>
@@ -83,8 +86,17 @@ $('extCancel').onclick=()=>setExt(null);
 function setMode(m){mode=m;$('tImage').classList.toggle('on',m=='image');$('tVideo').classList.toggle('on',m=='video');
   $('imgOpts').style.display=m=='image'?'':'none';$('vidOpts').style.display=m=='video'?'':'none';}
 $('tImage').onclick=()=>setMode('image');$('tVideo').onclick=()=>setMode('video');
-$('ref').onchange=e=>{const f=e.target.files[0];if(!f){refData=null;$('prev').style.display='none';return}
-  const r=new FileReader();r.onload=()=>{refData=r.result;$('prev').src=r.result;$('prev').style.display='block'};r.readAsDataURL(f)};
+function clearRef(){refData=null;$('ref').value='';$('prev').style.display='none';$('refClear').style.display='none'}
+$('refClear').onclick=clearRef;
+// Re-encode to JPEG (max 2048px): handles iPhone HEIC photos and keeps uploads small.
+$('ref').onchange=e=>{const f=e.target.files[0];if(!f)return clearRef();
+  st('Đang đọc ảnh...');const url=URL.createObjectURL(f),img=new Image();
+  img.onload=()=>{const s=Math.min(1,2048/Math.max(img.width,img.height)),c=document.createElement('canvas');
+    c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    refData=c.toDataURL('image/jpeg',0.9);URL.revokeObjectURL(url);
+    $('prev').src=refData;$('prev').style.display='block';$('refClear').style.display='inline';st('')};
+  img.onerror=()=>{URL.revokeObjectURL(url);clearRef();st('Không đọc được ảnh này, thử ảnh JPG/PNG khác.',1)};
+  img.src=url};
 function st(t,err){$('status').textContent=t;$('status').className=err?'err':''}
 function card(kind,prompt,file,time){
   const d=document.createElement('div');d.className='item';
