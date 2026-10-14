@@ -36,6 +36,9 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
 .pick{display:inline-block;padding:10px 14px;border:1px solid var(--ac);color:var(--ac);border-radius:8px;cursor:pointer;font-size:14px}
 .pick input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
 #refClear{display:none;margin-left:8px;background:none;border:0;color:var(--mut);text-decoration:underline;cursor:pointer}
+#spend{font-size:13px;color:var(--mut);margin:-4px 0 12px}
+#spend b{color:var(--tx)}
+#spend button{background:none;border:0;color:var(--mut);text-decoration:underline;cursor:pointer;font-size:12px}
 #prev{max-width:100%;max-height:120px;margin-top:6px;border-radius:8px;display:none}
 </style>
 </head>
@@ -43,6 +46,7 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
 <main>
 <section class="card">
   <h1>Grok Studio</h1>
+  <div id="spend">Đã chi (ước tính): <b id="spendTotal">$0.00</b> · lần gần nhất <b id="spendLast">–</b> <button id="spendReset" type="button">Đặt lại</button></div>
   <div class="tabs"><button id="tImage" class="on">Ảnh</button><button id="tVideo">Video</button></div>
   <div id="extBox">Đang kéo dài video: <b id="extName"></b> <button id="extCancel" type="button">Huỷ</button><video id="extPrev" muted controls></video></div>
   <label>Prompt</label>
@@ -104,17 +108,24 @@ $('ref').onchange=e=>{const f=e.target.files[0];if(!f)return clearRef();
   img.onerror=()=>{URL.revokeObjectURL(url);clearRef();st('Không đọc được ảnh này, thử ảnh JPG/PNG khác.',1)};
   img.src=url};
 function st(t,err){$('status').textContent=t;$('status').className=err?'err':''}
-function card(kind,prompt,file,time){
+// Running spend estimate, kept per browser so it survives Render wiping the server's disk.
+const money=c=>c==null?'?':'$'+c.toFixed(c<0.1?3:2);
+function getSpend(){try{return +localStorage.getItem('spend')||0}catch(e){return 0}}
+function setSpend(v){try{localStorage.setItem('spend',v)}catch(e){};$('spendTotal').textContent=money(v)}
+function addSpend(c){$('spendLast').textContent=money(c);if(c!=null)setSpend(getSpend()+c)}
+setSpend(getSpend());
+$('spendReset').onclick=()=>{if(confirm('Đặt lại bộ đếm chi phí về 0?'))setSpend(0)};
+function card(kind,prompt,file,cost){
   const d=document.createElement('div');d.className='item';
   const url='/outputs/'+file;
   d.innerHTML=(kind=='video'?`<video controls loop src="${url}"></video>`:`<img src="${url}" loading="lazy">`)+
    `<div class="m"></div>`;
-  d.querySelector('.m').append(prompt.slice(0,120)+' ',Object.assign(document.createElement('a'),{href:url,download:file,textContent:'Tải về'}));
+  d.querySelector('.m').append((cost!=null?'~'+money(cost)+' · ':'')+prompt.slice(0,120)+' ',Object.assign(document.createElement('a'),{href:url,download:file,textContent:'Tải về'}));
   if(kind=='video')d.querySelector('.m').append(
     Object.assign(document.createElement('button'),{textContent:'Kéo dài (rẻ)',onclick:()=>setExt(file,true)}),
     Object.assign(document.createElement('button'),{textContent:'Kéo dài (mượt)',onclick:()=>setExt(file,false)}));
   return d}
-function show(kind,prompt,files){files.forEach(f=>$('grid').prepend(card(kind,prompt,f)))}
+function show(kind,prompt,files,cost){files.forEach((f,i)=>$('grid').prepend(card(kind,prompt,f,i?null:cost)))}
 async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
 $('go').onclick=async()=>{
@@ -124,7 +135,7 @@ $('go').onclick=async()=>{
   try{
     if(mode=='image'){
       const j=await post('/api/image',{...common,resolution:$('resImg').value,model:$('mImg').value,n:$('n').value});
-      show('image',prompt,j.files);st('Xong.');
+      show('image',prompt,j.files,j.cost);addSpend(j.cost);st('Xong. Ước tính '+money(j.cost));
     }else{
       const model=extFile&&!extCheap?$('mExt').value:$('mVid').value;
       const duration=$('duration').value,resolution=$('resVid').value;
@@ -138,13 +149,13 @@ $('go').onclick=async()=>{
         st(`Đang tạo video... ${Math.round((Date.now()-t0)/1000)}s`);
         const r=await fetch(`/api/video/${s.request_id}?prompt=${encodeURIComponent(prompt)}&model=${encodeURIComponent(model)}`);
         const j=await r.json();if(!r.ok)throw new Error(j.error);
-        if(j.status=='done'){show('video',prompt,j.files);st('Xong.');setExt(null);break}
+        if(j.status=='done'){show('video',prompt,j.files,j.cost);addSpend(j.cost);st('Xong. Ước tính '+money(j.cost));setExt(null);break}
         if(j.error)throw new Error('Video '+j.status+': '+j.error);
       }
     }
   }catch(e){st(e.message,1)}
   $('go').disabled=false};
-fetch('/api/history').then(r=>r.json()).then(h=>h.slice().reverse().forEach(i=>show(i.kind,i.prompt,i.files)));
+fetch('/api/history').then(r=>r.json()).then(h=>h.slice().reverse().forEach(i=>show(i.kind,i.prompt,i.files,i.cost)));
 </script>
 </body>
 </html>

@@ -39,3 +39,9 @@ Mỗi video có hai nút:
 Với **Kéo dài (mượt)**: nhập điều xảy ra tiếp theo và thời lượng phần thêm (2–10s), rồi bấm Tạo. App gửi video gốc tới `POST /v1/videos/extensions` (model `grok-imagine-video`). Kết quả là một video mới gồm cả đoạn gốc lẫn đoạn nối thêm. Bạn có thể kéo dài tiếp video đó.
 
 Giới hạn của xAI: video gốc phải là .mp4 dài 2–15s, và kết quả giữ tỉ lệ khung hình của video gốc, tối đa 720p. Vì vậy video đã kéo dài quá 15s thì không kéo dài tiếp được.
+
+## Bộ đếm chi phí
+
+Ảnh và video của xAI tính tiền theo số ảnh và số giây, không theo token. App ước tính chi phí theo giá niêm yết trên docs.x.ai/docs/models (bảng `IMAGE_PRICE` và `VIDEO_PRICE_PER_SEC` trong server). Mỗi kết quả hiện chi phí ước tính, còn tổng cộng dồn hiện ở đầu trang. Tổng được lưu trong trình duyệt nên không mất khi Render xoá ổ đĩa; bấm "Đặt lại" để đưa về 0.
+
+Đây chỉ là ước tính ở giá cơ bản: độ phân giải cao có thể đắt hơn, và model không có trong bảng giá sẽ hiện `?`. Số tiền thật xem trong console xAI.

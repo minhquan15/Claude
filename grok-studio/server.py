@@ -68,9 +68,31 @@ def save_b64(b64, ext="jpg"):
     return name
 
 
-def add_history(kind, prompt, files, model):
+# Base list prices (USD) from docs.x.ai/docs/models. Higher resolutions may cost more,
+# so these are estimates; the xAI console is the source of truth.
+IMAGE_PRICE = {"grok-imagine-image": 0.02, "grok-imagine-image-2.0": 0.04,
+               "grok-imagine-image-quality": 0.05}
+VIDEO_PRICE_PER_SEC = {"grok-imagine-video": 0.05, "grok-imagine-video-1.5": 0.08,
+                       "grok-imagine-video-1.5-lite": 0.02}
+
+
+def image_cost(model, count, edited):
+    price = IMAGE_PRICE.get(model)
+    if price is None:
+        return None
+    return round(price * (count + (1 if edited else 0)), 4)  # edits also bill the input image
+
+
+def video_cost(model, seconds):
+    price = VIDEO_PRICE_PER_SEC.get(model)
+    if price is None or not seconds:
+        return None
+    return round(price * float(seconds), 4)
+
+
+def add_history(kind, prompt, files, model, cost=None):
     items = json.loads(HISTORY.read_text()) if HISTORY.exists() else []
-    items.insert(0, {"kind": kind, "prompt": prompt, "files": files, "model": model,
+    items.insert(0, {"kind": kind, "prompt": prompt, "files": files, "model": model, "cost": cost,
                      "time": time.strftime("%Y-%m-%d %H:%M:%S")})
     HISTORY.write_text(json.dumps(items[:200], ensure_ascii=False))
 
@@ -100,8 +122,9 @@ def do_image(p):
             files.append(save_b64(d["b64_json"]))
     if not files:
         raise RuntimeError("Không có ảnh trong phản hồi: " + json.dumps(res)[:500])
-    add_history("image", p["prompt"], files, p["model"])
-    return {"files": files}
+    cost = image_cost(p["model"], len(files), bool(p.get("image")))
+    add_history("image", p["prompt"], files, p["model"], cost)
+    return {"files": files, "cost": cost}
 
 
 def do_video_start(p):
@@ -115,6 +138,7 @@ def do_video_start(p):
     if p.get("image"):
         body["image"] = {"url": p["image"]}
     res = xai("POST", "/videos/generations", body)
+    track_job(res.get("request_id"), p["model"], body.get("duration", 8), use_reported=True)
     return {"request_id": res.get("request_id"), "raw": res}
 
 
@@ -127,12 +151,21 @@ def do_video_extend(p):
     if p.get("duration"):
         body["duration"] = int(p["duration"])
     res = xai("POST", "/videos/extensions", body)
+    # The reported duration is the whole output; only the extension part is generated.
+    track_job(res.get("request_id"), p["model"], body.get("duration", 6), use_reported=False)
     return {"request_id": res.get("request_id"), "raw": res}
 
 
-# request_id -> source file, for "cheap" extensions that get stitched after download.
-CHEAP_JOBS = {}
-CHEAP_LOCK = threading.Lock()
+# request_id -> job info: billed model/seconds, plus the source file for "cheap"
+# extensions that get stitched after download.
+JOBS = {}
+JOBS_LOCK = threading.Lock()
+
+
+def track_job(rid, model, seconds, use_reported, base=None):
+    if rid:
+        with JOBS_LOCK:
+            JOBS[rid] = {"model": model, "seconds": seconds, "use_reported": use_reported, "base": base}
 
 
 def ffmpeg_exe():
@@ -199,9 +232,7 @@ def do_video_extend_cheap(p):
         body["resolution"] = p["resolution"]
     res = xai("POST", "/videos/generations", body)
     rid = res.get("request_id")
-    if rid:
-        with CHEAP_LOCK:
-            CHEAP_JOBS[rid] = src.name
+    track_job(rid, p["model"], body.get("duration", 8), use_reported=True, base=src.name)
     return {"request_id": rid, "raw": res}
 
 
@@ -214,16 +245,20 @@ def do_video_poll(rid, prompt, model):
         if not url:
             raise RuntimeError("Video xong nhưng không có URL: " + json.dumps(res)[:500])
         f = save_url(url, "mp4")
-        with CHEAP_LOCK:
-            base = CHEAP_JOBS.pop(rid, None)
+        with JOBS_LOCK:
+            job = JOBS.pop(rid, None) or {"model": model, "seconds": None, "use_reported": True, "base": None}
+        seconds = (res.get("video") or {}).get("duration") if job["use_reported"] else None
+        cost = video_cost(res.get("model") or job["model"], seconds or job["seconds"])
+        base = job["base"]
         if base:
             seg = OUT / f
             try:
                 f = stitch(OUT / base, seg)
             finally:
                 seg.unlink(missing_ok=True)
-        add_history("video", prompt, [f], model)
+        add_history("video", prompt, [f], model, cost)
         out["files"] = [f]
+        out["cost"] = cost
     elif status in ("failed", "expired"):
         out["error"] = json.dumps(res)[:500]
     return out
