@@ -4,7 +4,7 @@ services:
     runtime: python
     plan: free
     rootDir: grok-studio
-    buildCommand: "true"
+    buildCommand: pip install -r requirements.txt
     startCommand: python3 server.py
     envVars:
       - key: PYTHON_VERSION

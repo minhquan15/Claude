@@ -6,7 +6,11 @@ import json
 import mimetypes
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -18,7 +22,7 @@ ROOT = Path(__file__).parent
 OUT = ROOT / "outputs"
 OUT.mkdir(exist_ok=True)
 HISTORY = OUT / "history.json"
-API = "https://api.x.ai/v1"
+API = os.environ.get("XAI_BASE_URL", "https://api.x.ai/v1")
 
 
 def load_env():
@@ -126,6 +130,81 @@ def do_video_extend(p):
     return {"request_id": res.get("request_id"), "raw": res}
 
 
+# request_id -> source file, for "cheap" extensions that get stitched after download.
+CHEAP_JOBS = {}
+CHEAP_LOCK = threading.Lock()
+
+
+def ffmpeg_exe():
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except ImportError:
+        exe = shutil.which("ffmpeg")
+        if not exe:
+            raise RuntimeError("Thiếu ffmpeg: chạy pip install -r requirements.txt")
+        return exe
+
+
+def run_ffmpeg(*args):
+    r = subprocess.run([ffmpeg_exe(), "-hide_banner", "-y", *args], capture_output=True, text=True)
+    if r.returncode:
+        raise RuntimeError("ffmpeg lỗi: " + r.stderr[-800:])
+    return r.stderr
+
+
+def probe(path):
+    """Width, height, fps and whether there is an audio stream, parsed from ffmpeg's banner."""
+    err = subprocess.run([ffmpeg_exe(), "-hide_banner", "-i", str(path)],
+                         capture_output=True, text=True).stderr
+    vline = next((l for l in err.splitlines() if "Video:" in l), "")
+    size = re.search(r", (\d{2,5})x(\d{2,5})", vline)
+    fps = re.search(r"([\d.]+) fps", vline)
+    if not size:
+        raise RuntimeError("Không đọc được video: " + err[-300:])
+    return int(size[1]), int(size[2]), float(fps[1]) if fps else 24.0, "Audio:" in err
+
+
+def last_frame_data_uri(src):
+    with tempfile.TemporaryDirectory() as d:
+        out = Path(d) / "last.jpg"
+        run_ffmpeg("-sseof", "-1", "-i", str(src), "-update", "1", "-q:v", "2", str(out))
+        return "data:image/jpeg;base64," + base64.b64encode(out.read_bytes()).decode()
+
+
+def stitch(first, second):
+    w, h, fps, a1 = probe(first)
+    a2 = probe(second)[3]
+    norm = f"scale={w}:{h}:force_original_aspect_ratio=decrease,pad={w}:{h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={fps}"
+    audio = a1 and a2
+    graph = f"[0:v]{norm}[v0];[1:v]{norm}[v1];" + (
+        "[v0][0:a][v1][1:a]concat=n=2:v=1:a=1[v][a]" if audio else "[v0][v1]concat=n=2:v=1:a=0[v]")
+    name = f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}.mp4"
+    args = ["-i", str(first), "-i", str(second), "-filter_complex", graph, "-map", "[v]"]
+    if audio:
+        args += ["-map", "[a]", "-c:a", "aac", "-b:a", "128k"]
+    run_ffmpeg(*args, "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+               "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(OUT / name))
+    return name
+
+
+def do_video_extend_cheap(p):
+    src = OUT / Path(p.get("file", "")).name
+    if not src.is_file() or src.suffix != ".mp4":
+        raise RuntimeError("Không tìm thấy video gốc trên server (có thể đã mất sau khi khởi động lại).")
+    body = {"model": p["model"], "prompt": p["prompt"], "image": {"url": last_frame_data_uri(src)}}
+    if p.get("duration"):
+        body["duration"] = int(p["duration"])
+    if p.get("resolution"):
+        body["resolution"] = p["resolution"]
+    res = xai("POST", "/videos/generations", body)
+    rid = res.get("request_id")
+    if rid:
+        with CHEAP_LOCK:
+            CHEAP_JOBS[rid] = src.name
+    return {"request_id": rid, "raw": res}
+
+
 def do_video_poll(rid, prompt, model):
     res = xai("GET", f"/videos/{rid}")
     status = res.get("status", "pending")
@@ -135,6 +214,14 @@ def do_video_poll(rid, prompt, model):
         if not url:
             raise RuntimeError("Video xong nhưng không có URL: " + json.dumps(res)[:500])
         f = save_url(url, "mp4")
+        with CHEAP_LOCK:
+            base = CHEAP_JOBS.pop(rid, None)
+        if base:
+            seg = OUT / f
+            try:
+                f = stitch(OUT / base, seg)
+            finally:
+                seg.unlink(missing_ok=True)
         add_history("video", prompt, [f], model)
         out["files"] = [f]
     elif status in ("failed", "expired"):
@@ -206,6 +293,8 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, do_image(p))
             if self.path == "/api/video":
                 return self.send(200, do_video_start(p))
+            if self.path == "/api/video/extend-cheap":
+                return self.send(200, do_video_extend_cheap(p))
             if self.path == "/api/video/extend":
                 return self.send(200, do_video_extend(p))
             self.send(404, {"error": "not found"})

@@ -31,6 +31,11 @@ Khi `HOST` không phải localhost, server từ chối chạy nếu chưa đặt
 
 ## Kéo dài video
 
-Mỗi video trong lịch sử có nút **Kéo dài**. Bấm vào, nhập điều xảy ra tiếp theo và thời lượng phần thêm (2–10s), rồi bấm Tạo. App gửi video gốc tới `POST /v1/videos/extensions` (model `grok-imagine-video`). Kết quả là một video mới gồm cả đoạn gốc lẫn đoạn nối thêm. Bạn có thể kéo dài tiếp video đó.
+Mỗi video có hai nút:
+
+- **Kéo dài (rẻ)**: server lấy khung hình cuối, tạo đoạn mới bằng `grok-imagine-video-1.5-lite` (~$0.02/giây, mặc định 480p), rồi dùng ffmpeg ghép vào video gốc. Rẻ hơn khoảng 2,5 lần và không bị giới hạn 15 giây, nhưng chỗ nối có thể hơi khựng.
+- **Kéo dài (mượt)**: cách có sẵn của xAI, mô tả dưới đây.
+
+Với **Kéo dài (mượt)**: nhập điều xảy ra tiếp theo và thời lượng phần thêm (2–10s), rồi bấm Tạo. App gửi video gốc tới `POST /v1/videos/extensions` (model `grok-imagine-video`). Kết quả là một video mới gồm cả đoạn gốc lẫn đoạn nối thêm. Bạn có thể kéo dài tiếp video đó.
 
 Giới hạn của xAI: video gốc phải là .mp4 dài 2–15s, và kết quả giữ tỉ lệ khung hình của video gốc, tối đa 720p. Vì vậy video đã kéo dài quá 15s thì không kéo dài tiếp được.

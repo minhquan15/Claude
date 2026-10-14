@@ -52,16 +52,20 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
   <img id="prev">
   <div class="row" id="imgOpts">
     <div><label>Số ảnh (1-10)</label><input id="n" type="number" min="1" max="10" value="1"></div>
+    <div><label>Độ phân giải ảnh</label>
+      <select id="resImg"><option value="">Mặc định</option><option>1k</option><option>2k</option></select></div>
   </div>
   <div class="row" id="vidOpts" style="display:none">
     <div><label>Thời lượng (giây)</label><input id="duration" type="number" min="1" max="15" value="8"></div>
-    <div><label id="durHint" style="font-size:11px">Video mới: 1–15s. Kéo dài: 2–10s.</label></div>
+    <div><label>Độ phân giải video</label>
+      <select id="resVid"><option selected>480p</option><option>720p</option><option>1080p</option></select></div>
+  </div>
+  <div id="durHint" style="font-size:11px;color:var(--mut)">Video mới / kéo dài (rẻ): 1–15s. Kéo dài (mượt): 2–10s.</div>
+  <div class="row">
   </div>
   <div class="row">
     <div><label>Tỉ lệ khung hình</label>
       <select id="ar"><option value="">Mặc định</option><option>1:1</option><option>16:9</option><option>9:16</option><option>4:3</option><option>3:4</option></select></div>
-    <div><label>Độ phân giải</label>
-      <select id="res"><option value="">Mặc định</option><option>480p</option><option>720p</option><option>1080p</option><option>1k</option><option>2k</option></select></div>
   </div>
   <details><summary>Model</summary>
     <label>Model ảnh</label><input id="mImg" value="grok-imagine-image">
@@ -78,8 +82,10 @@ details{margin-top:10px}summary{cursor:pointer;color:var(--mut);font-size:12px}
 </main>
 <script>
 const $=id=>document.getElementById(id);
-let mode='image',refData=null,extFile=null;
-function setExt(f){extFile=f;$('extBox').style.display=f?'block':'none';$('extName').textContent=f||'';
+let mode='image',refData=null,extFile=null,extCheap=false;
+function setExt(f,cheap){extFile=f;extCheap=!!cheap;$('extBox').style.display=f?'block':'none';
+  $('extName').textContent=f?f+(extCheap?' (rẻ: khung cuối + 1.5-lite, rồi ghép)':' (mượt)'):'';
+  for(const el of [$('refLabel'),document.querySelector('.pick')])el.style.display=f?'none':'';
   $('extPrev').src=f?'/outputs/'+f:'';if(f){setMode('video');$('prompt').value='';$('prompt').placeholder='Mô tả điều xảy ra tiếp theo...';$('duration').value=6;window.scrollTo({top:0,behavior:'smooth'})}
   else $('prompt').placeholder='Mô tả thứ bạn muốn tạo...'}
 $('extCancel').onclick=()=>setExt(null);
@@ -104,7 +110,9 @@ function card(kind,prompt,file,time){
   d.innerHTML=(kind=='video'?`<video controls loop src="${url}"></video>`:`<img src="${url}" loading="lazy">`)+
    `<div class="m"></div>`;
   d.querySelector('.m').append(prompt.slice(0,120)+' ',Object.assign(document.createElement('a'),{href:url,download:file,textContent:'Tải về'}));
-  if(kind=='video')d.querySelector('.m').append(Object.assign(document.createElement('button'),{textContent:'Kéo dài',onclick:()=>setExt(file)}));
+  if(kind=='video')d.querySelector('.m').append(
+    Object.assign(document.createElement('button'),{textContent:'Kéo dài (rẻ)',onclick:()=>setExt(file,true)}),
+    Object.assign(document.createElement('button'),{textContent:'Kéo dài (mượt)',onclick:()=>setExt(file,false)}));
   return d}
 function show(kind,prompt,files){files.forEach(f=>$('grid').prepend(card(kind,prompt,f)))}
 async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
@@ -112,15 +120,17 @@ async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'C
 $('go').onclick=async()=>{
   const prompt=$('prompt').value.trim();if(!prompt)return st('Nhập prompt trước.',1);
   $('go').disabled=true;st('Đang gửi...');
-  const common={prompt,aspect_ratio:$('ar').value,resolution:$('res').value,image:refData};
+  const common={prompt,aspect_ratio:$('ar').value,image:refData};
   try{
     if(mode=='image'){
-      const j=await post('/api/image',{...common,model:$('mImg').value,n:$('n').value});
+      const j=await post('/api/image',{...common,resolution:$('resImg').value,model:$('mImg').value,n:$('n').value});
       show('image',prompt,j.files);st('Xong.');
     }else{
-      const model=extFile?$('mExt').value:$('mVid').value;
-      const s=extFile?await post('/api/video/extend',{prompt,model,file:extFile,duration:$('duration').value})
-                     :await post('/api/video',{...common,model,duration:$('duration').value});
+      const model=extFile&&!extCheap?$('mExt').value:$('mVid').value;
+      const duration=$('duration').value,resolution=$('resVid').value;
+      const s=!extFile?await post('/api/video',{...common,model,duration,resolution})
+             :extCheap?await post('/api/video/extend-cheap',{prompt,model,file:extFile,duration,resolution})
+             :await post('/api/video/extend',{prompt,model,file:extFile,duration});
       if(!s.request_id)throw new Error('Không có request_id: '+JSON.stringify(s.raw));
       const t0=Date.now();
       while(true){
