@@ -1,0 +1,182 @@
+#!/usr/bin/env python3
+"""Grok Studio: local web UI for the xAI image and video API. Standard library only."""
+import json
+import mimetypes
+import os
+import re
+import sys
+import time
+import urllib.error
+import urllib.request
+import uuid
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+
+ROOT = Path(__file__).parent
+OUT = ROOT / "outputs"
+OUT.mkdir(exist_ok=True)
+HISTORY = OUT / "history.json"
+API = "https://api.x.ai/v1"
+
+
+def load_env():
+    env = ROOT / ".env"
+    if env.exists():
+        for line in env.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                os.environ.setdefault(k.strip(), v.strip().strip('"').strip("'"))
+
+
+load_env()
+
+
+def xai(method, path, body=None):
+    key = os.environ.get("XAI_API_KEY")
+    if not key:
+        raise RuntimeError("Thiếu XAI_API_KEY. Tạo file .env (xem .env.example).")
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(
+        API + path, data=data, method=method,
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
+                 "User-Agent": "grok-studio/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=300) as r:
+            return json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        raise RuntimeError(f"xAI {e.code}: {e.read().decode(errors='replace')}")
+
+
+def save_url(url, ext):
+    name = f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}.{ext}"
+    req = urllib.request.Request(url, headers={"User-Agent": "grok-studio/1.0"})
+    with urllib.request.urlopen(req, timeout=300) as r:
+        (OUT / name).write_bytes(r.read())
+    return name
+
+
+def save_b64(b64, ext="jpg"):
+    import base64
+    name = f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}.{ext}"
+    (OUT / name).write_bytes(base64.b64decode(b64))
+    return name
+
+
+def add_history(kind, prompt, files, model):
+    items = json.loads(HISTORY.read_text()) if HISTORY.exists() else []
+    items.insert(0, {"kind": kind, "prompt": prompt, "files": files, "model": model,
+                     "time": time.strftime("%Y-%m-%d %H:%M:%S")})
+    HISTORY.write_text(json.dumps(items[:200], ensure_ascii=False))
+
+
+def image_ref(data_uri_or_url):
+    return {"url": data_uri_or_url, "type": "image_url"}
+
+
+def do_image(p):
+    body = {"model": p["model"], "prompt": p["prompt"]}
+    if p.get("n"):
+        body["n"] = int(p["n"])
+    if p.get("aspect_ratio"):
+        body["aspect_ratio"] = p["aspect_ratio"]
+    if p.get("resolution"):
+        body["resolution"] = p["resolution"]
+    if p.get("image"):  # reference image -> edit endpoint
+        body["image"] = image_ref(p["image"])
+        res = xai("POST", "/images/edits", body)
+    else:
+        res = xai("POST", "/images/generations", body)
+    files = []
+    for d in res.get("data", []):
+        if d.get("url"):
+            files.append(save_url(d["url"], "jpg"))
+        elif d.get("b64_json"):
+            files.append(save_b64(d["b64_json"]))
+    if not files:
+        raise RuntimeError("Không có ảnh trong phản hồi: " + json.dumps(res)[:500])
+    add_history("image", p["prompt"], files, p["model"])
+    return {"files": files}
+
+
+def do_video_start(p):
+    body = {"model": p["model"], "prompt": p["prompt"]}
+    if p.get("duration"):
+        body["duration"] = int(p["duration"])
+    if p.get("aspect_ratio"):
+        body["aspect_ratio"] = p["aspect_ratio"]
+    if p.get("resolution"):
+        body["resolution"] = p["resolution"]
+    if p.get("image"):
+        body["image"] = {"url": p["image"]}
+    res = xai("POST", "/videos/generations", body)
+    return {"request_id": res.get("request_id"), "raw": res}
+
+
+def do_video_poll(rid, prompt, model):
+    res = xai("GET", f"/videos/{rid}")
+    status = res.get("status", "pending")
+    out = {"status": status}
+    if status == "done":
+        url = (res.get("video") or {}).get("url")
+        if not url:
+            raise RuntimeError("Video xong nhưng không có URL: " + json.dumps(res)[:500])
+        f = save_url(url, "mp4")
+        add_history("video", prompt, [f], model)
+        out["files"] = [f]
+    elif status in ("failed", "expired"):
+        out["error"] = json.dumps(res)[:500]
+    return out
+
+
+class H(BaseHTTPRequestHandler):
+    def log_message(self, fmt, *a):
+        sys.stderr.write("%s\n" % (fmt % a))
+
+    def send(self, code, data, ctype="application/json"):
+        if not isinstance(data, (bytes, bytearray)):
+            data = json.dumps(data, ensure_ascii=False).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self):
+        path = self.path.split("?")[0]
+        if path == "/":
+            return self.send(200, (ROOT / "index.html").read_bytes(), "text/html; charset=utf-8")
+        if path == "/api/history":
+            return self.send(200, json.loads(HISTORY.read_text()) if HISTORY.exists() else [])
+        m = re.fullmatch(r"/api/video/([\w-]+)", path)
+        if m:
+            q = dict(x.split("=", 1) for x in self.path.partition("?")[2].split("&") if "=" in x)
+            from urllib.parse import unquote
+            try:
+                return self.send(200, do_video_poll(m.group(1), unquote(q.get("prompt", "")),
+                                                    unquote(q.get("model", ""))))
+            except Exception as e:
+                return self.send(500, {"error": str(e)})
+        if path.startswith("/outputs/"):
+            f = OUT / Path(path[len("/outputs/"):]).name
+            if f.is_file():
+                return self.send(200, f.read_bytes(),
+                                 mimetypes.guess_type(f.name)[0] or "application/octet-stream")
+        self.send(404, {"error": "not found"})
+
+    def do_POST(self):
+        try:
+            p = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+            if self.path == "/api/image":
+                return self.send(200, do_image(p))
+            if self.path == "/api/video":
+                return self.send(200, do_video_start(p))
+            self.send(404, {"error": "not found"})
+        except Exception as e:
+            self.send(500, {"error": str(e)})
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Grok Studio: http://127.0.0.1:{port}")
+    ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()
