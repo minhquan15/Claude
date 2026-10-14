@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Grok Studio: local web UI for the xAI image and video API. Standard library only."""
+import base64
+import hmac
 import json
 import mimetypes
 import os
@@ -57,7 +59,6 @@ def save_url(url, ext):
 
 
 def save_b64(b64, ext="jpg"):
-    import base64
     name = f"{time.strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:6]}.{ext}"
     (OUT / name).write_bytes(base64.b64decode(b64))
     return name
@@ -133,6 +134,24 @@ class H(BaseHTTPRequestHandler):
     def log_message(self, fmt, *a):
         sys.stderr.write("%s\n" % (fmt % a))
 
+    def authorized(self):
+        pw = os.environ.get("APP_PASSWORD")
+        if not pw:
+            return True
+        h = self.headers.get("Authorization", "")
+        try:
+            user_pass = base64.b64decode(h.split(" ", 1)[1]).decode()
+            given = user_pass.split(":", 1)[1]
+        except Exception:
+            return False
+        return hmac.compare_digest(given.encode(), pw.encode())
+
+    def deny(self):
+        self.send_response(401)
+        self.send_header("WWW-Authenticate", 'Basic realm="Grok Studio"')
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def send(self, code, data, ctype="application/json"):
         if not isinstance(data, (bytes, bytearray)):
             data = json.dumps(data, ensure_ascii=False).encode()
@@ -143,6 +162,8 @@ class H(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
+        if not self.authorized():
+            return self.deny()
         path = self.path.split("?")[0]
         if path == "/":
             return self.send(200, (ROOT / "index.html").read_bytes(), "text/html; charset=utf-8")
@@ -165,6 +186,8 @@ class H(BaseHTTPRequestHandler):
         self.send(404, {"error": "not found"})
 
     def do_POST(self):
+        if not self.authorized():
+            return self.deny()
         try:
             p = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
             if self.path == "/api/image":
@@ -177,6 +200,9 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", 8000))
-    print(f"Grok Studio: http://127.0.0.1:{port}")
-    ThreadingHTTPServer(("127.0.0.1", port), H).serve_forever()
+    if host not in ("127.0.0.1", "localhost") and not os.environ.get("APP_PASSWORD"):
+        sys.exit("Từ chối chạy công khai khi chưa đặt APP_PASSWORD.")
+    print(f"Grok Studio: http://{host}:{port}")
+    ThreadingHTTPServer((host, port), H).serve_forever()

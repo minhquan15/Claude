@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: grok-studio
+    runtime: python
+    plan: free
+    rootDir: grok-studio
+    buildCommand: "true"
+    startCommand: python3 server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: HOST
+        value: 0.0.0.0
+      - key: XAI_API_KEY
+        sync: false
+      - key: APP_PASSWORD
+        sync: false
